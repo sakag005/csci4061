@@ -55,7 +55,7 @@ typedef struct Node{
 } Node;
 
 typedef struct list_item{
-	Node* item;
+	void* item;
 	struct list_item* next;
 } list_item;
 

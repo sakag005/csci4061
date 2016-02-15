@@ -9,6 +9,7 @@
 
 #include "util.h"
 
+//linked list
 static list_item* first;
 static list_item* current;
 
@@ -24,7 +25,8 @@ int parse(char * lpszFileName)
 	{
 		return -1;
 	}
-
+	
+	//This parsing is currently unfinished
 	while(file_getline(szLine, fp) != NULL) 
 	{
 		static int firstNode = 1;
@@ -39,20 +41,25 @@ int parse(char * lpszFileName)
 		Node* nd;
 		while(lpszLine != NULL)
 		{	
+			//if there is no tab, it's a target line
 			if(lpszLine[0] != '\t')
 			{
 				nd = (Node*)malloc(sizeof(Node));
+		
+				//look for colon
 				char* col = strchr(lpszLine, ':');
 			
 				if(col != NULL)
 				{					
+					//copy target
 					nd->target = (char *)malloc(((int)(col - lpszLine)) * sizeof(char));
 					strncpy(nd->target, lpszLine, (int)(col - lpszLine));
 
 					nd->numParents = 0;
 					
 					char* space = col + 1;
-
+					
+					//use spaces to try to find number of dependencies
 					while(space[1] == ' ')
 						space++;
 					
@@ -66,6 +73,7 @@ int parse(char * lpszFileName)
 
 					end = space + 1;
 	
+					//copy dependencies
 					int i = 0;
 					while((end = strchr(end+1, ' ')) != NULL)
 					{
@@ -82,10 +90,11 @@ int parse(char * lpszFileName)
 				}
 			}else
 			{
-				
+				//this is a command, so copy the whole line
 				nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char));
 				strcpy(nd->command, lpszLine+1);
 
+				//add node to the front of the global linked list
 				if(firstNode)
 				{
 					list_item* new_item = (list_item *)malloc(sizeof(list_item));

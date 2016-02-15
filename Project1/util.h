@@ -44,7 +44,7 @@ int makeargv(const char *s, const char *delimiters, char ***argvp);
 void freemakeargv(char **argv);
 
 //new code added:
-
+//node and linked list items
 typedef struct Node{
 	int pid;	
 	int numParents;	
