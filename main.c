@@ -10,7 +10,8 @@
 
 #include "util.h"
 
-//This function will parse makefile input from user or default makeFile. 
+//for some reason I get a seg fault when I close the file (last line)
+//only printing, will add structure later
 int parse(char * lpszFileName)
 {
 	int nLine=0;
@@ -30,16 +31,13 @@ int parse(char * lpszFileName)
 
 	while(file_getline(szLine, fp) != NULL) 
 	{
-		printf("first char: %c", lpszLine[0]);
-		printf("line length: %d \n", strlen(lpszLine));
+		printf("line %d first char: %c \n", nLine, lpszLine[0]);
 		nLine++;
 		// this loop will go through the given file, one line at a time
 		// this is where you need to do the work of interpreting
 		// each line of the file to be able to deal with it later
-		printf("\n");
 		//check if empty line
 		if(strlen(lpszLine) == 1){
-			printf("IN HERE YO1 \n");
 			continue;
 		}
 		
@@ -47,7 +45,6 @@ int parse(char * lpszFileName)
 		lpszLine = strtok(szLine, "\n"); 
 		
 		//check if first char is space
-			printf("hello world \n");
 
 		if(lpszLine[0] == ' '){
 			while(isspace(*lpszLine)) lpszLine++; //continue until not space
@@ -71,10 +68,11 @@ int parse(char * lpszFileName)
 				printf("ERROR command doesn't follow target/dep \n");
 				return 0;
 			}
-			printf("target: %s \n", previousTarget);
+			//printf("target: %s \n", previousTarget);
 			//get command
 			char * command = "";
-			for(i=0;strlen(lpszLine);i++){
+			int l = strlen(lpszLine);
+			for(i=0;i<l;i++){
 				char c = lpszLine[i];
 				size_t len = strlen(command);
 				char * str2 = malloc(len+1+1);
@@ -86,14 +84,16 @@ int parse(char * lpszFileName)
 				strcpy(command,str2);
 				free(str2);
 			}
-			printf("command: %s \n", strcpy);
+			printf("command: %s with target: %s \n", command, previousTarget);
 			afterTarget = false;
+			free(command);
 			continue;
 		}
-/*
+
 		//check if line is target/depend
 		char * target = "";
-		for(i=0;i<strlen(lpszLine);i++)
+		int l = strlen(lpszLine);
+		for(i=0;i<l;i++)
 		{
 			char c = lpszLine[i];
 			size_t len = strlen(target);
@@ -109,11 +109,12 @@ int parse(char * lpszFileName)
 			strcpy(previousTarget,target);
 			free(str2);
 		}
-		printf("target; %s \n", target);
+		printf("target: %s \n", target);
+		free(target);
 		
-*/
 
-		printf(lpszLine);
+
+		//printf(lpszLine);
 		
 		//You need to check below for parsing. 
 		//Skip if blank or comment.
@@ -126,8 +127,12 @@ int parse(char * lpszFileName)
 		//You can use any data structure (array, linked list ...) as you want to build a graph
 	}
 
-	//Close the makefile. 
-	fclose(fp);
+	//Close the makefile. For some reason if this isn't checked it will raise
+	//a segfault 
+	free(previousTarget);
+	if(fp == NULL){
+		fclose(fp);
+	}
 
 	return 0;
 }
@@ -218,3 +223,4 @@ int main1(int argc, char **argv)
 	//then execute all of the targets that were specified on the command line, along with their dependencies, etc.
 	return EXIT_SUCCESS;
 }
+
