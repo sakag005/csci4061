@@ -10,7 +10,6 @@
 
 #include "util.h"
 
-//for some reason I get a seg fault when I close the file (last line)
 //only printing, will add structure later
 int parse(char * lpszFileName)
 {
