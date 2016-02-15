@@ -189,7 +189,7 @@ void printNodes()
 		printf("command: %s\n", nd.command);
 		current = current->next;
 		int j;
-		for(j = 0; j < nd.numParents; j++)
+		for(j = 0; j<nd.numParents; j++)
 		{
 			printf("dependency: %s\n", nd.dependencies[i]);
 		}
