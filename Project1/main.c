@@ -38,14 +38,14 @@ int parse(char * lpszFileName)
 		//Remove newline character at end if there is one
 		lpszLine = strtok(szLine, "\n"); 
 
-		Node* nd;
+		
 		while(lpszLine != NULL)
 		{	
+			Node* nd;
 			//if there is no tab, it's a target line
 			if(lpszLine[0] != '\t')
 			{
-				nd = (Node*)malloc(sizeof(Node));
-		
+				nd  = (Node*)malloc(sizeof(Node));
 				//look for colon
 				char* col = strchr(lpszLine, ':');
 			
@@ -57,38 +57,43 @@ int parse(char * lpszFileName)
 
 					nd->numParents = 0;
 					
-					char* space = col + 1;
+					int sizeDep = strlen(col);
 					
-					//use spaces to try to find number of dependencies
-					while(space[1] == ' ')
-						space++;
-					
-					char* end = space + 1;
-					while((end = strchr(end+1, ' ')) != NULL)
-						nd->numParents++;
-
-					nd->numParents++;
-
-					nd->dependencies = (char**)malloc(nd->numParents*sizeof(char*));				
-
-					end = space + 1;
+					int j;
+					for(j = 1; j < sizeDep; j++)
+					{
+						if((col[j] != ' ') && (col[j-1] == ' '))
+							nd->numParents++;
+					}
 	
 					//copy dependencies
+					nd->dependencies = (char **)malloc(nd->numParents * sizeof(char*));
 					int i = 0;
-					while((end = strchr(end+1, ' ')) != NULL)
+					int k = 0;
+					for(i = 1; i < sizeDep; i++)
 					{
-						nd->dependencies[i] = (char*)malloc(((int)(end - space-1))*sizeof(char));
-						strncpy(nd->dependencies[i], space+1, (int)(end - space-1));
-						//printf("dependency: %s\n", nd->dependencies[i]);
-						i++;
-						space = end;
+						if((col[i] != ' ') && (col[i-1] == ' '))
+						{
+							char* end = strchr(&col[i], ' ');
+							if(end != NULL)
+							{
+								nd->dependencies[k] = (char *)malloc(((int)(end - &col[i])) * sizeof(char));
+								strncpy(nd->dependencies[k], &col[i], ((int)(end - &col[i])));
+								k++;
+							}else if(i<sizeDep)
+							{
+								nd->dependencies[k] = (char *)malloc((sizeDep - i) * sizeof(char));
+								strncpy(nd->dependencies[k], &col[i], (sizeDep - i));
+								break;
+							}
+						}
 					}
-					nd->dependencies[i] = (char*)malloc(strlen(space)*sizeof(char));
-					strcpy(nd->dependencies[i], space+1);
-					//printf("dependency: %s\n", nd->dependencies[i]);
-					//printf("target: %s\n", nd.target);
+
 				}
-			}else
+				
+				lpszLine = strtok(NULL, "\n");
+			}
+			if((lpszLine != NULL) && (lpszLine[0] == '\t'))
 			{
 				//this is a command, so copy the whole line
 				nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char));
@@ -99,64 +104,23 @@ int parse(char * lpszFileName)
 				{
 					list_item* new_item = (list_item *)malloc(sizeof(list_item));
 
-					Node* list_nd = (Node *)malloc(sizeof(Node));
-
-					list_nd->numParents = nd->numParents;
-					list_nd->target = (char *)malloc(strlen(nd->target)*sizeof(char));
-					strcpy(list_nd->target, nd->target);
-					
-					list_nd->command = (char *)malloc(strlen(nd->command)*sizeof(char));
-					strcpy(list_nd->command, nd->command);
-
-					list_nd->dependencies = (char **)malloc(nd->numParents*sizeof(char*));
-
-					int i;
-					for(i = 0; i < nd->numParents; i++)
-					{
-						list_nd->dependencies[i] = (char *)malloc(strlen(nd->dependencies[i])*sizeof(char));
-						strcpy(list_nd->dependencies[i], nd->dependencies[i]);
-						printf("dependency: %s\n", list_nd->dependencies[i]);
-					}
-
-					new_item->item = (void *)list_nd;
+					new_item->item = (void *)nd;
 					new_item->next = NULL;
 					current = new_item;
 					first = current;
 					firstNode = 0;
-
-					free(nd);
 				}else
 				{
 					list_item* new_item = (list_item *)malloc(sizeof(list_item));
 
-					Node* list_nd = (Node *)malloc(sizeof(Node));
-
-					list_nd->numParents = nd->numParents;
-					list_nd->target = (char *)malloc(strlen(nd->target)*sizeof(char));
-					strcpy(list_nd->target, nd->target);
-					
-					list_nd->command = (char *)malloc(strlen(nd->command)*sizeof(char));
-					strcpy(list_nd->command, nd->command);
-
-					list_nd->dependencies = (char **)malloc(nd->numParents*sizeof(char*));
-
-					int i;
-					for(i = 0; i<nd->numParents; i++)
-					{
-						list_nd->dependencies[i] = (char *)malloc(strlen(nd->dependencies[i])*sizeof(char));
-						strcpy(list_nd->dependencies[i], nd->dependencies[i]);
-					}
-
-					new_item->item = (void *)list_nd;
+					new_item->item = (void *)nd;
 					new_item->next = current;
 					current = new_item;
 					first = current;
-
-					free(nd);
 				}
+				
+				lpszLine = strtok(NULL, "\n");
 			}	
-
-			lpszLine = strtok(NULL, "\n");
 		}
 		//You need to check below for parsing. 
 		//Skip if blank or comment.
@@ -200,11 +164,11 @@ void printNodes()
 		int j;
 		for(j = 0; j < nd.numParents; j++)
 		{
-			printf("dependency: %s\n", nd.dependencies[i]);
+			printf("dependency: %s\n", nd.dependencies[j]);
 		}
+
 		i++;
 	}
-	printf("numNodes: %d\n", i);
 }
 
 int main(int argc, char **argv) 
