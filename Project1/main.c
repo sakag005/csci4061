@@ -120,7 +120,29 @@ int parse(char * lpszFileName)
 				}
 				
 				lpszLine = strtok(NULL, "\n");
-			}	
+			}else
+			{
+				nd->command = " ";
+				//add node to the front of the global linked list
+				if(firstNode)
+				{
+					list_item* new_item = (list_item *)malloc(sizeof(list_item));
+
+					new_item->item = (void *)nd;
+					new_item->next = NULL;
+					current = new_item;
+					first = current;
+					firstNode = 0;
+				}else
+				{
+					list_item* new_item = (list_item *)malloc(sizeof(list_item));
+
+					new_item->item = (void *)nd;
+					new_item->next = current;
+					current = new_item;
+					first = current;
+				}
+			}
 		}
 		//You need to check below for parsing. 
 		//Skip if blank or comment.
@@ -158,13 +180,13 @@ void printNodes()
 	while(current != NULL)
 	{
 		Node nd = *((Node *)current->item);		
-		printf("target: %s\n", nd.target);
-		printf("command: %s\n", nd.command);
+		printf("target:%s:end\n", nd.target);
+		printf("\tcommand:%s:end\n", nd.command);
 		current = current->next;
 		int j;
 		for(j = 0; j < nd.numParents; j++)
 		{
-			printf("dependency: %s\n", nd.dependencies[j]);
+			printf("\tdependency:%s:end\n", nd.dependencies[j]);
 		}
 
 		i++;
