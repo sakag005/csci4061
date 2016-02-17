@@ -13,6 +13,7 @@
 static list_item* first;
 static list_item* current;
 
+
 //This function will parse makefile input from user or default makeFile. 
 int parse(char * lpszFileName)
 {
@@ -26,10 +27,12 @@ int parse(char * lpszFileName)
 		return -1;
 	}
 	
+	Node* nd;
 	//This parsing is currently unfinished
 	while(file_getline(szLine, fp) != NULL) 
 	{
 		static int firstNode = 1;
+		static int lastTab = 1;
 		nLine++;
 		// this loop will go through the given file, one line at a time
 		// this is where you need to do the work of interpreting
@@ -37,113 +40,139 @@ int parse(char * lpszFileName)
 		
 		//Remove newline character at end if there is one
 		lpszLine = strtok(szLine, "\n"); 
-
+		//printf("%s\n",lpszLine);
 		
-		while(lpszLine != NULL)
-		{	
-			Node* nd;
-			//if there is no tab, it's a target line
-			if(lpszLine[0] != '\t')
+		if(lpszLine == NULL)
+			continue;
+		
+		
+		if(lpszLine[0] == ' '){
+			int i;
+			for(i = 1; i<strlen(lpszLine); i++)
 			{
-				nd  = (Node*)malloc(sizeof(Node));
-				//look for colon
-				char* col = strchr(lpszLine, ':');
-			
-				if(col != NULL)
-				{					
-					//copy target
-					nd->target = (char *)malloc(((int)(col - lpszLine)) * sizeof(char));
-					strncpy(nd->target, lpszLine, (int)(col - lpszLine));
+				if(lpszLine[i] == '#')
+				{
+					break;
+				}else if(lpszLine[i] != ' ')
+				{
+					printf("ERROR ERROR LINE INCORRECT SYNTAX \n");
+					return 0;
+				}
+			}
+			continue;
+		}
 
-					nd->numParents = 0;
-					
-					int sizeDep = strlen(col);
-					
-					int j;
-					for(j = 1; j < sizeDep; j++)
+		//check if comment
+		if(lpszLine[0] == '#'){
+			continue;
+		}
+		
+		//if there is no tab, it's a target line
+		if(lpszLine[0] != '\t')
+		{
+			if(lastTab == 0)
+			{
+				if(firstNode)
+				{
+					list_item* new_item = (list_item *)malloc(sizeof(list_item));
+
+					new_item->item = (void *)nd;
+					new_item->next = NULL;
+					current = new_item;
+					first = current;
+					firstNode = 0;
+				}else
+				{
+					list_item* new_item = (list_item *)malloc(sizeof(list_item));
+
+					new_item->item = (void *)nd;
+					new_item->next = current;
+					current = new_item;
+					first = current;
+				}
+			}
+			
+			nd  = (Node*)malloc(sizeof(Node));
+			//look for colon
+			char* col = strchr(lpszLine, ':');
+		
+			if(col != NULL)
+			{					
+				//copy target
+				nd->target = (char *)malloc(((int)(col - lpszLine)) * sizeof(char));
+				strncpy(nd->target, lpszLine, (int)(col - lpszLine));
+
+				nd->numParents = 0;
+				
+				int sizeDep = strlen(col);
+				
+				int j;
+				for(j = 1; j < sizeDep; j++)
+				{
+					if((col[j] != ' ') && (col[j-1] == ' '))
+						nd->numParents++;
+				}
+
+				//copy dependencies
+				nd->dependencies = (char **)malloc(nd->numParents * sizeof(char*));
+				int i = 0;
+				int k = 0;
+				for(i = 1; i < sizeDep; i++)
+				{
+					if((col[i] != ' ') && (col[i-1] == ' '))
 					{
-						if((col[j] != ' ') && (col[j-1] == ' '))
-							nd->numParents++;
-					}
-	
-					//copy dependencies
-					nd->dependencies = (char **)malloc(nd->numParents * sizeof(char*));
-					int i = 0;
-					int k = 0;
-					for(i = 1; i < sizeDep; i++)
-					{
-						if((col[i] != ' ') && (col[i-1] == ' '))
+						char* end = strchr(&col[i], ' ');
+						if(end != NULL)
 						{
-							char* end = strchr(&col[i], ' ');
-							if(end != NULL)
-							{
-								nd->dependencies[k] = (char *)malloc(((int)(end - &col[i])) * sizeof(char));
-								strncpy(nd->dependencies[k], &col[i], ((int)(end - &col[i])));
-								k++;
-							}else if(i<sizeDep)
-							{
-								nd->dependencies[k] = (char *)malloc((sizeDep - i) * sizeof(char));
-								strncpy(nd->dependencies[k], &col[i], (sizeDep - i));
-								break;
-							}
+							nd->dependencies[k] = (char *)malloc(((int)(end - &col[i])) * sizeof(char));
+							strncpy(nd->dependencies[k], &col[i], ((int)(end - &col[i])));
+							k++;
+						}else if(i<sizeDep)
+						{
+							nd->dependencies[k] = (char *)malloc((sizeDep - i) * sizeof(char));
+							strncpy(nd->dependencies[k], &col[i], (sizeDep - i));
+							break;
 						}
 					}
-
 				}
-				
-				lpszLine = strtok(NULL, "\n");
+
 			}
-			if((lpszLine != NULL) && (lpszLine[0] == '\t'))
+			
+			lastTab = 0;
+			
+		}
+		if(lpszLine[0] == '\t')
+		{
+			//this is a command, so copy the whole line
+			
+			nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char));
+			strcpy(nd->command, lpszLine+1);
+			
+			//add node to the front of the global linked list
+			if(firstNode)
 			{
-				//this is a command, so copy the whole line
-				nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char));
-				strcpy(nd->command, lpszLine+1);
+				list_item* new_item = (list_item *)malloc(sizeof(list_item));
 
-				//add node to the front of the global linked list
-				if(firstNode)
-				{
-					list_item* new_item = (list_item *)malloc(sizeof(list_item));
-
-					new_item->item = (void *)nd;
-					new_item->next = NULL;
-					current = new_item;
-					first = current;
-					firstNode = 0;
-				}else
-				{
-					list_item* new_item = (list_item *)malloc(sizeof(list_item));
-
-					new_item->item = (void *)nd;
-					new_item->next = current;
-					current = new_item;
-					first = current;
-				}
-				
-				lpszLine = strtok(NULL, "\n");
+				new_item->item = (void *)nd;
+				new_item->next = NULL;
+				current = new_item;
+				first = current;
+				firstNode = 0;
 			}else
 			{
-				nd->command = " ";
-				//add node to the front of the global linked list
-				if(firstNode)
-				{
-					list_item* new_item = (list_item *)malloc(sizeof(list_item));
+				list_item* new_item = (list_item *)malloc(sizeof(list_item));
 
-					new_item->item = (void *)nd;
-					new_item->next = NULL;
-					current = new_item;
-					first = current;
-					firstNode = 0;
-				}else
-				{
-					list_item* new_item = (list_item *)malloc(sizeof(list_item));
-
-					new_item->item = (void *)nd;
-					new_item->next = current;
-					current = new_item;
-					first = current;
-				}
+				new_item->item = (void *)nd;
+				new_item->next = current;
+				current = new_item;
+				first = current;
 			}
+			
+			lastTab = 1;
+			
 		}
+		
+		
 		//You need to check below for parsing. 
 		//Skip if blank or comment.
 		//Remove leading whitespace.
@@ -180,13 +209,13 @@ void printNodes()
 	while(current != NULL)
 	{
 		Node nd = *((Node *)current->item);		
-		printf("target:%s:end\n", nd.target);
-		printf("\tcommand:%s:end\n", nd.command);
+		printf("target:  %s\n", nd.target);
+		printf("\tcommand:  %s\n", nd.command);
 		current = current->next;
 		int j;
 		for(j = 0; j < nd.numParents; j++)
 		{
-			printf("\tdependency:%s:end\n", nd.dependencies[j]);
+			printf("\tdependency:  %s\n", nd.dependencies[j]);
 		}
 
 		i++;
