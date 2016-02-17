@@ -11,8 +11,37 @@
 
 //linked list
 static list_item* first;
-static list_item* current;
 
+void assignParents()
+{
+	list_item* current = first;
+	while(current != NULL)
+	{
+		Node* nd = ((Node *)current->item);		
+		int depCounter = 0;
+		
+		list_item* others = first;
+		while(others != NULL)
+		{
+			Node* otherND = ((Node *)others->item);
+			
+			int j;
+			for(j = 0; j < nd->numParents; j++)
+			{
+				if(strcmp(otherND->target, nd->dependencies[j]) == 0)
+				{
+					otherND->toParent = nd;
+					depCounter++;
+				}
+			}
+			
+			others = others->next;
+		}
+		
+		nd->numParents = depCounter;
+		current = current->next;
+	}
+}
 
 //This function will parse makefile input from user or default makeFile. 
 int parse(char * lpszFileName)
@@ -78,21 +107,20 @@ int parse(char * lpszFileName)
 
 					new_item->item = (void *)nd;
 					new_item->next = NULL;
-					current = new_item;
-					first = current;
+					first = new_item;
 					firstNode = 0;
 				}else
 				{
 					list_item* new_item = (list_item *)malloc(sizeof(list_item));
 
 					new_item->item = (void *)nd;
-					new_item->next = current;
-					current = new_item;
-					first = current;
+					new_item->next = first;
+					first = new_item;
 				}
 			}
 			
 			nd  = (Node*)malloc(sizeof(Node));
+			nd->toParent = NULL;
 			//look for colon
 			char* col = strchr(lpszLine, ':');
 		
@@ -155,17 +183,15 @@ int parse(char * lpszFileName)
 
 				new_item->item = (void *)nd;
 				new_item->next = NULL;
-				current = new_item;
-				first = current;
+				first = new_item;
 				firstNode = 0;
 			}else
 			{
 				list_item* new_item = (list_item *)malloc(sizeof(list_item));
 
 				new_item->item = (void *)nd;
-				new_item->next = current;
-				current = new_item;
-				first = current;
+				new_item->next = first;
+				first = new_item;
 			}
 			
 			lastTab = 1;
@@ -204,21 +230,18 @@ void show_error_message(char * lpszFileName)
 
 void printNodes()
 {
-	current = first;
-	int i = 0;
+	list_item* current = first;
+	
 	while(current != NULL)
 	{
 		Node nd = *((Node *)current->item);		
 		printf("target:  %s\n", nd.target);
 		printf("\tcommand:  %s\n", nd.command);
+		printf("\tnumParents: %d\n", nd.numParents);
+		if(nd.toParent != NULL)
+			printf("\tNext node: %s\n", nd.toParent->target);
+		
 		current = current->next;
-		int j;
-		for(j = 0; j < nd.numParents; j++)
-		{
-			printf("\tdependency:  %s\n", nd.dependencies[j]);
-		}
-
-		i++;
 	}
 }
 
@@ -280,13 +303,14 @@ int main(int argc, char **argv)
 	{
 	}
 
-	first = current;
 	/* Parse graph file or die */
 	if((parse(szMakefile)) == -1) 
 	{
 		return EXIT_FAILURE;
 	}
-
+	
+	assignParents();
+	
 	printNodes();
 
 	//after parsing the file, you'll want to check all dependencies (whether they are available targets or files)

@@ -50,7 +50,7 @@ typedef struct Node{
 	int numParents;	
 	char *target;
 	char *command;
-	struct Node *next;
+	struct Node *toParent;
 	char **dependencies;
 } Node;
 
