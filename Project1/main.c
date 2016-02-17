@@ -85,7 +85,7 @@ int parse(char * lpszFileName)
 				}else if(lpszLine[i] != ' ')
 				{
 					printf("ERROR ERROR LINE INCORRECT SYNTAX \n");
-					return 0;
+					return -1;
 				}
 			}
 			continue;
@@ -103,7 +103,12 @@ int parse(char * lpszFileName)
 			{
 				if(firstNode)
 				{
-					list_item* new_item = (list_item *)malloc(sizeof(list_item));
+					list_item* new_item;
+					if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
+					{	
+						printf("ERROR: Insufficient memory");
+						return -1;
+					}
 
 					new_item->item = (void *)nd;
 					new_item->next = NULL;
@@ -111,15 +116,24 @@ int parse(char * lpszFileName)
 					firstNode = 0;
 				}else
 				{
-					list_item* new_item = (list_item *)malloc(sizeof(list_item));
-
+					list_item* new_item;
+					if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
+					{	
+						printf("ERROR: Insufficient memory");
+						return -1;
+					}
+					
 					new_item->item = (void *)nd;
 					new_item->next = first;
 					first = new_item;
 				}
 			}
 			
-			nd  = (Node*)malloc(sizeof(Node));
+			if((nd  = (Node*)malloc(sizeof(Node))) == NULL)
+			{	
+				printf("ERROR: Insufficient memory");
+				return -1;
+			}
 			nd->toParent = NULL;
 			//look for colon
 			char* col = strchr(lpszLine, ':');
@@ -127,7 +141,12 @@ int parse(char * lpszFileName)
 			if(col != NULL)
 			{					
 				//copy target
-				nd->target = (char *)malloc(((int)(col - lpszLine)) * sizeof(char));
+				if((nd->target = (char *)malloc(((int)(col - lpszLine)) * sizeof(char))) == NULL)
+				{	
+					printf("ERROR: Insufficient memory");
+					return -1;
+				}
+				
 				strncpy(nd->target, lpszLine, (int)(col - lpszLine));
 
 				nd->numParents = 0;
@@ -142,7 +161,12 @@ int parse(char * lpszFileName)
 				}
 
 				//copy dependencies
-				nd->dependencies = (char **)malloc(nd->numParents * sizeof(char*));
+				if((nd->dependencies = (char **)malloc(nd->numParents * sizeof(char*))) == NULL)
+				{	
+					printf("ERROR: Insufficient memory");
+					return -1;
+				}
+				
 				int i = 0;
 				int k = 0;
 				for(i = 1; i < sizeDep; i++)
@@ -152,12 +176,20 @@ int parse(char * lpszFileName)
 						char* end = strchr(&col[i], ' ');
 						if(end != NULL)
 						{
-							nd->dependencies[k] = (char *)malloc(((int)(end - &col[i])) * sizeof(char));
+							if((nd->dependencies[k] = (char *)malloc(((int)(end - &col[i])) * sizeof(char))) == NULL)
+							{	
+								printf("ERROR: Insufficient memory");
+								return -1;
+							}
 							strncpy(nd->dependencies[k], &col[i], ((int)(end - &col[i])));
 							k++;
 						}else if(i<sizeDep)
 						{
-							nd->dependencies[k] = (char *)malloc((sizeDep - i) * sizeof(char));
+							if((nd->dependencies[k] = (char *)malloc((sizeDep - i) * sizeof(char))) == NULL)
+							{	
+								printf("ERROR: Insufficient memory");
+								return -1;
+							}
 							strncpy(nd->dependencies[k], &col[i], (sizeDep - i));
 							break;
 						}
@@ -173,13 +205,23 @@ int parse(char * lpszFileName)
 		{
 			//this is a command, so copy the whole line
 			
-			nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char));
+			if((nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char))) == NULL)
+			{
+				printf("ERROR: Insufficient memory");
+				return -1;
+			}
+			
 			strcpy(nd->command, lpszLine+1);
 			
 			//add node to the front of the global linked list
 			if(firstNode)
 			{
-				list_item* new_item = (list_item *)malloc(sizeof(list_item));
+				list_item* new_item;
+				if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
+				{	
+					printf("ERROR: Insufficient memory");
+					return -1;
+				}
 
 				new_item->item = (void *)nd;
 				new_item->next = NULL;
@@ -187,7 +229,12 @@ int parse(char * lpszFileName)
 				firstNode = 0;
 			}else
 			{
-				list_item* new_item = (list_item *)malloc(sizeof(list_item));
+				list_item* new_item;
+				if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
+				{	
+					printf("ERROR: Insufficient memory");
+					return -1;
+				}
 
 				new_item->item = (void *)nd;
 				new_item->next = first;
