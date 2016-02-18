@@ -22,7 +22,7 @@ int hasZero(list_item * list)
 	while(current != NULL)
 	{
 		Node nd = *((Node *)current->item);
-		if(nd.numParents == 0){
+		if(nd.numTargetDep == 0){
 			return 1; //has zero, is not clean
 		}
 		current = current->next;
@@ -65,7 +65,7 @@ int forkExec(Node **toBeExeced, int numElements){
 			if(commands[0] == 1){
 				printf("%s\n", toBeExeced[i]->command);
 				if (toBeExeced[i]->toParent != NULL){
-					toBeExeced[i]->toParent->numParents--;
+					toBeExeced[i]->toParent->numTargetDep--;
 				}
 				continue;
 			}
@@ -87,7 +87,7 @@ int forkExec(Node **toBeExeced, int numElements){
 		if(childpid > 0){
 			wait(&status);
 			if(toBeExeced[i]->toParent != NULL){
-				toBeExeced[i]->toParent->numParents--;
+				toBeExeced[i]->toParent->numTargetDep--;
 			}
 		}
 		freemakeargv(execargv);
@@ -107,8 +107,8 @@ int run(){
 		while(copy != NULL)
 		{
 			Node nd = *((Node *)copy->item);
-			if(nd.numParents == 0){
-				((Node*)copy->item)->numParents = -10; //has zero, is not clean
+			if(nd.numTargetDep == 0){
+				((Node*)copy->item)->numTargetDep = -10; //has zero, is not clean
 				//nodes_to_execute[i] = &nd;
 				nodes_to_execute[i] = ((Node*)copy->item);
 				i++;
@@ -148,7 +148,7 @@ void assignParents()
 			others = others->next;
 		}
 		
-		nd->numParents = depCounter;
+		nd->numTargetDep = depCounter;
 		current = current->next;
 	}
 }
@@ -209,7 +209,7 @@ int removeNonTargets(char* argv)
 	//We will not be executing anything after target
 	nd->toParent = NULL;
 	
-	if(nd->numParents == 0)
+	if(nd->numTargetDep == 0)
 	{
 		current = first;
 		list_item* temp;
@@ -385,7 +385,7 @@ int parse(char * lpszFileName, char** defTarget)
 				return -1;
 			}
 			nd->toParent = NULL;
-			nd->numParents = 0;
+			nd->numTargetDep = 0;
 			//look for colon
 			char* col = strchr(lpszLine, ':');
 		
@@ -542,7 +542,7 @@ void printNodes()
 		Node nd = *((Node *)current->item);		
 		printf("target:  %s\n", nd.target);
 		printf("\tcommand:  %s\n", nd.command);
-		printf("\tnumParents: %d\n", nd.numParents);
+		printf("\tnumTargetDep: %d\n", nd.numTargetDep);
 		if(nd.toParent != NULL)
 			printf("\tNext node: %s\n", nd.toParent->target);
 		

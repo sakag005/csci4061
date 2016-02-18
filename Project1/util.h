@@ -47,7 +47,7 @@ void freemakeargv(char **argv);
 //node and linked list items
 typedef struct Node{
 	int pid;	
-	int numParents;
+	int numTargetDep;
 	int sizeDepends;
 	char *target;
 	char *command;
