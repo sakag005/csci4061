@@ -559,7 +559,30 @@ int main(int argc, char **argv)
 	// If getopt is still really confusing,
 	// try printing out what's in argv right here, then just running 
 	// with various command-line arguments.
-
+	
+	//redirect output if option is given
+	if(commands[2])
+	{
+		int fd;
+		if((fd = open(szLog, O_CREAT | O_WRONLY, 0644)) == -1)
+		{
+			printf("Error opening log file\n");
+			return EXIT_FAILURE;
+		}
+		if(dup2(fd, 1) == -1)
+		{
+			printf("Error redirecting the output\n");
+			return EXIT_FAILURE;
+		}
+		if(close(fd) == -1)
+		{
+			printf("Error closing log file\n");
+			return EXIT_FAILURE;
+		}
+	}
+	
+	
+	
 	if(argc > 1)
 	{
 		show_error_message(argv[0]);
@@ -570,7 +593,6 @@ int main(int argc, char **argv)
 	/* Parse graph file or die */
 	if((parse(szMakefile, &defTarget)) == -1) 
 	{
-		show_error_message(argv[0]);
 		return EXIT_FAILURE;
 	}
 
