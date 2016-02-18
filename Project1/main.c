@@ -588,9 +588,9 @@ int main(int argc, char **argv)
 	}
 
 	//printNodes();
-	int r;
-	r = run();
-	if(r == -1){
+	
+	if(run() == -1){
+		show_error_message(argv[0]);
 		return EXIT_FAILURE;
 	}
 
