@@ -48,6 +48,8 @@ int forkExec(Node **toBeExeced, int numElements){
 		int status;
 		int recompile = 1;
 		//if recompile is 1, then build
+		
+		//-n flag set
 		if(commands[1] == 0){
 
 			recompile = 0;
