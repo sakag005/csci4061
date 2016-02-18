@@ -42,27 +42,22 @@ int forkExec(Node **toBeExeced, int numElements){
 		int status;
 		int recompile = 1;
 		//if recompile is 1, then build
-                if(commands[1] == 0){
-                        printf("no -B]\n");
-                        recompile = 0;
-                        for(k;k<toBeExeced[i]->sizeDepends;k++){
-                                comp = compare_modification_time(toBeExeced[i]->dependencies[k],toBeExeced[i]->target);
+		if(commands[1] == 0){
+
+			recompile = 0;
+			for(k = 0;k<toBeExeced[i]->sizeDepends;k++){
+				comp = compare_modification_time(toBeExeced[i]->dependencies[k],toBeExeced[i]->target);
 				int child_timestamp = get_file_modification_time(toBeExeced[i]->dependencies[k]);
 				int parent_timestamp = get_file_modification_time(toBeExeced[i]->target);
-                                printf("child timestamp: %d \n", child_timestamp);
-                                printf("parent timestamp: %d \n", parent_timestamp);
-                                printf("comp: %d \n",comp);
-                                printf("recompile: %d \n",recompile);
-				//if the timestamp for one doesn't exist, or the timestamp of the child is greater (newer) than the parent
-                                if(comp < 2){
-                                        recompile = 1;
 
-                                }
-                                printf("recompile: %d \n",recompile);
+				//if the timestamp for one doesn't exist, or the timestamp of the child is greater (newer) than the parent
+				if(comp < 2){
+					recompile = 1;
+				}
 			}
-			}
+		}
 		//if child is older than the parent, don't rebuild
-		if(recompile == 0){
+		if(recompile == 0 && commands[0] != 1){
 			continue;
 		}
 		
@@ -85,7 +80,6 @@ int forkExec(Node **toBeExeced, int numElements){
 			return -1;
 		}
 		if(childpid ==0){
-			printf("building\n");
 			execvp(execargv[0],&execargv[0]);
 			perror("Child failed to Exec \n");
 			return -1;
