@@ -598,7 +598,7 @@ int main(int argc, char **argv)
 	
 	if(argc > 1)
 	{
-		show_error_message(argv[0]); 
+		show_error_message(argv[1]); 
 		return EXIT_FAILURE;
 	}
 
