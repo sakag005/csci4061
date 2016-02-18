@@ -20,7 +20,7 @@ int hasZero(list_item * list)
 	while(current != NULL)
 	{
 		Node nd = *((Node *)current->item);
-		if((nd.numParents == 0) && (strcmp(nd.target,"clean") != 0)  ){
+		if((nd.numParents == 0) && (strcmp(nd.target, "clean") != 0)  ){
 			return 1; //has zero, is not clean
 		}
 		current = current->next;
@@ -127,6 +127,21 @@ void free_node(Node* other)
 	if((other->sizeDepends)>0) free(other->dependencies);
 	
 	free(other);
+}
+
+void freeEverything()
+{
+	list_item* current = first;
+	list_item* temp;
+	while(current != NULL)
+	{
+		temp = current;
+		current = current->next;
+		Node* nd = ((Node *)temp->item);
+		
+		free_node(nd);
+		free(temp);
+	}
 }
 
 void removeNonTargets(char* argv)
@@ -371,7 +386,7 @@ int parse(char * lpszFileName, char** defTarget)
 						{
 							if((nd->dependencies[k] = (char *)malloc(((int)(end - &col[i])) * sizeof(char))) == NULL)
 							{	
-								printf("ERROR: Insufficient memory");
+								printf("ERROR: Insufficient memory\n");
 								return -1;
 							}
 							strncpy(nd->dependencies[k], &col[i], ((int)(end - &col[i])));
@@ -380,7 +395,7 @@ int parse(char * lpszFileName, char** defTarget)
 						{
 							if((nd->dependencies[k] = (char *)malloc((sizeDep - i) * sizeof(char))) == NULL)
 							{	
-								printf("ERROR: Insufficient memory");
+								printf("ERROR: Insufficient memory\n");
 								return -1;
 							}
 							strncpy(nd->dependencies[k], &col[i], (sizeDep - i));
@@ -400,7 +415,7 @@ int parse(char * lpszFileName, char** defTarget)
 			
 			if((nd->command = (char*)malloc(strlen(lpszLine+1)*sizeof(char))) == NULL)
 			{
-				printf("ERROR: Insufficient memory");
+				printf("ERROR: Insufficient memory\n");
 				return -1;
 			}
 			
@@ -420,7 +435,7 @@ int parse(char * lpszFileName, char** defTarget)
 				list_item* new_item;
 				if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 				{	
-					printf("ERROR: Insufficient memory");
+					printf("ERROR: Insufficient memory\n");
 					return -1;
 				}
 
@@ -433,7 +448,7 @@ int parse(char * lpszFileName, char** defTarget)
 				list_item* new_item;
 				if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 				{	
-					printf("ERROR: Insufficient memory");
+					printf("ERROR: Insufficient memory\n");
 					return -1;
 				}
 
@@ -546,6 +561,7 @@ int main(int argc, char **argv)
 	/* Parse graph file or die */
 	if((parse(szMakefile, &defTarget)) == -1) 
 	{
+		show_error_message(argv[0]);
 		return EXIT_FAILURE;
 	}
 	
@@ -564,6 +580,9 @@ int main(int argc, char **argv)
 	//printNodes();
 	run();
 
+	//free all data structures
+	freeEverything();
+	
 	//after parsing the file, you'll want to check all dependencies (whether they are available targets or files)
 	//then execute all of the targets that were specified on the command line, along with their dependencies, etc.
 	return EXIT_SUCCESS;
