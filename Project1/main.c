@@ -35,9 +35,10 @@ int forkExec(Node **toBeExeced, int numElements){
 		pid_t childpid;
 		int execargc;
 		int status;
-	
-		execargc = makeargv (toBeExeced[i]->command," ",&execargv);
-		toBeExeced[i]->pid = childpid = fork();
+		if (strcmp (toBeExeced[i]->command, " ") != 0){	
+			execargc = makeargv (toBeExeced[i]->command," ",&execargv);
+			toBeExeced[i]->pid = childpid = fork();
+		}
 		if (childpid == -1){
 			perror("Failed to Fork\n");
 			return -1;
@@ -243,6 +244,7 @@ void removeNonTargets(char* argv)
 //This function will parse makefile input from user or default makeFile. 
 int parse(char * lpszFileName, char** defTarget)
 {
+
 	int nLine=0;
 	char szLine[1024];
 	char * lpszLine;
@@ -271,7 +273,6 @@ int parse(char * lpszFileName, char** defTarget)
 		if(lpszLine == NULL)
 			continue;
 		
-		
 		if(lpszLine[0] == ' '){
 			int i;
 			for(i = 1; i<strlen(lpszLine); i++)
@@ -299,6 +300,7 @@ int parse(char * lpszFileName, char** defTarget)
 			if(lastTab == 0)
 			{
 				nd->command = " ";
+				
 				if(firstNode)
 				{
 					/*if((*defTarget = (char *)malloc(sizeof(char)*strlen(nd->target))) == NULL)
@@ -309,7 +311,7 @@ int parse(char * lpszFileName, char** defTarget)
 					strcpy(*defTarget, nd->target);*/
 					*defTarget = nd->target;
 					//printf("WHAT IS THIS %s\n", *defTarget);
-					
+
 					list_item* new_item;
 					if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 					{	
@@ -374,7 +376,7 @@ int parse(char * lpszFileName, char** defTarget)
 					printf("ERROR: Insufficient memory");
 					return -1;
 				}
-				
+
 				int i = 0;
 				int k = 0;
 				for(i = 1; i < sizeDep; i++)
@@ -460,8 +462,7 @@ int parse(char * lpszFileName, char** defTarget)
 			lastTab = 1;
 			
 		}
-		
-		
+
 		//You need to check below for parsing. 
 		//Skip if blank or comment.
 		//Remove leading whitespace.
@@ -514,6 +515,7 @@ int main(int argc, char **argv)
 	extern int optind;
 	extern char * optarg;
 	int ch;
+	
 	char * format = "f:hnBm:";
 	
 	// Default makefile name will be Makefile
@@ -564,9 +566,9 @@ int main(int argc, char **argv)
 		show_error_message(argv[0]);
 		return EXIT_FAILURE;
 	}
-	
+
 	assignParents();
-	
+
 	//You may start your program by setting the target that make4061 should build.
 	//if target is not set, set it to default (first target from makefile)
 	if(argc == 1)
@@ -577,6 +579,7 @@ int main(int argc, char **argv)
 	{
 		removeNonTargets(defTarget);
 	}
+
 	//printNodes();
 	run();
 
