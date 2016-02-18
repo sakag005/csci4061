@@ -1,0 +1,30 @@
+Purpose:
+	Builds executable programs or libraries from source files based on a 
+	makefile. It does the Following:
+	1) Reads the makefile
+	2) Follows the specification in the file
+	3) Builds the targets in a controlled fashion
+
+How to Compile:
+	Entering "make" in the command line compiles the program and returns an
+	an executable called make4061.
+
+How to use Program:
+       	To run from the shell, first compile the program using the method
+	described above. Then run the executable using the ./ command (i.e.
+	"./make4061"). The program can be run with numerous flags and options 
+	which are as follows:
+	
+	Defaults to builds first taget found in makefile
+	"-f FILENAME" Read from specific FILE
+	"-h" Displays help screen
+	"-n" Print commands only does not eecute them
+	"-B" Don't check timestamps
+	"-m FILENAME" Redirect output to FILE
+	"./make4061 SPECIFIC TARGET" Only builds specific target
+	  
+	***Make sure to specify target last when running with multiple commands,
+	otherwise getopt will terminate early.***
+
+Other Instructions:
+	Be happy.
