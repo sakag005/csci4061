@@ -383,7 +383,7 @@ int parse(char * lpszFileName, char** defTarget)
 				int j;
 				for(j = 1; j < sizeDep; j++)
 				{
-					if((col[j] != ' ') && (col[j-1] == ' '))
+					if((col[j] != ' ') && ((col[j-1] == ' ') || (col[j-1] == ':')))
 						nd->sizeDepends++;
 				}
 
@@ -398,7 +398,7 @@ int parse(char * lpszFileName, char** defTarget)
 				int k = 0;
 				for(i = 1; i < sizeDep; i++)
 				{
-					if((col[i] != ' ') && (col[i-1] == ' '))
+					if((col[i] != ' ') && ((col[i-1] == ' ') || (col[i-1] == ':')))
 					{
 						char* end = strchr(&col[i], ' ');
 						if(end != NULL)
@@ -598,7 +598,7 @@ int main(int argc, char **argv)
 	
 	if(argc > 1)
 	{
-		show_error_message(argv[0]);
+		show_error_message(argv[0]); 
 		return EXIT_FAILURE;
 	}
 
