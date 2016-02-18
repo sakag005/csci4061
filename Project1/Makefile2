@@ -1,0 +1,5 @@
+makeOne: makeTwo main.c util.c
+	gcc -o make4061 main.c util.c
+
+makeTwo: main.c util.c
+	gcc -o make4061a main.c util.c
