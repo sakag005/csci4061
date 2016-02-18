@@ -45,7 +45,8 @@ int forkExec(Node **toBeExeced, int numElements){
 		}
 		if(childpid ==0){
 			execvp(execargv[0],&execargv[0]);
-			return 1;
+			perror("Child failed to Exec \n");
+			return -1;
 		}
 		if(childpid > 0){
 			wait(&status);
@@ -58,11 +59,11 @@ int forkExec(Node **toBeExeced, int numElements){
 	return 1;
 }
 
-void run(){
+int run(){
 	list_item* copy = first;
 
 	list_item* save = copy;
-	
+	int r;	
 	while(hasZero(copy))
 	{
 		int i = 0;
@@ -78,10 +79,11 @@ void run(){
 			}
 			copy = copy->next;
 		}  
-		forkExec(nodes_to_execute,i);
+		r = forkExec(nodes_to_execute,i);
 		free(nodes_to_execute);
 		copy = save;
 	}
+	return r;
 }
 
 void assignParents()
@@ -581,7 +583,11 @@ int main(int argc, char **argv)
 	}
 
 	//printNodes();
-	run();
+	int r;
+	r = run();
+	if(r == -1){
+		return EXIT_FAILURE;
+	}
 
 	//free all data structures
 	freeEverything();
