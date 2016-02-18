@@ -13,7 +13,7 @@
 
 //linked list
 static list_item* first;
-
+static char* targ;
 static int commands[3] = {0, 0, 0};
 
 int hasZero(list_item * list)
@@ -34,6 +34,9 @@ int forkExec(Node **toBeExeced, int numElements){
 	int i;
 	int k = 0;
 	int comp;
+	
+	if(strcmp(targ, "clean")==0)
+		commands[1] = 1;
 	
 	for(i=0;i<numElements;i++){
 		char **execargv;
@@ -639,6 +642,7 @@ int main(int argc, char **argv)
 	//if target is not set, set it to default (first target from makefile)
 	if(argc == 1)
 	{
+		targ = argv[0];
 		if(removeNonTargets(argv[0]) == -1)
 		{
 			printf("Error: target was not found");
@@ -647,6 +651,7 @@ int main(int argc, char **argv)
 	}
 	else
 	{
+		targ = defTarget;
 		if(removeNonTargets(defTarget) == -1)
 		{
 		printf("Error: target was not found");
