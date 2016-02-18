@@ -615,7 +615,7 @@ int main(int argc, char **argv)
 	//if target is not set, set it to default (first target from makefile)
 	if(argc == 1)
 	{
-		if(removeNonTargets(argv[0]))
+		if(removeNonTargets(argv[0]) == -1)
 		{
 			printf("Error: target was not found");
 			return EXIT_FAILURE;
@@ -623,9 +623,9 @@ int main(int argc, char **argv)
 	}
 	else
 	{
-		if(removeNonTargets(defTarget))
+		if(removeNonTargets(defTarget) == -1)
 		{
-			printf("Error: target was not found");
+		printf("Error: target was not found");
 			return EXIT_FAILURE;
 		}
 	}
