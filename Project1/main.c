@@ -38,6 +38,13 @@ int forkExec(Node **toBeExeced, int numElements){
 		int execargc;
 		int status;
 		if (strcmp (toBeExeced[i]->command, " ") != 0){	
+			if(commands[0] == 1){
+				printf("%s\n", toBeExeced[i]->command);
+				if (toBeExeced[i]->toParent != NULL){
+					toBeExeced[i]->toParent->numParents--;
+				}
+				continue;
+			}
 			execargc = makeargv (toBeExeced[i]->command," ",&execargv);
 			toBeExeced[i]->pid = childpid = fork();
 		}else
