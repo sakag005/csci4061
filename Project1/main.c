@@ -16,6 +16,9 @@ static list_item* first;
 static char* targ;
 static int commands[3] = {0, 0, 0};
 
+
+//Function cycles through list of nodes and returns 1 if at least one node has
+//zero dependencies. Returns 0 otherwise.
 int hasZero(list_item * list)
 {
 	list_item* current = list;
@@ -30,6 +33,9 @@ int hasZero(list_item * list)
 	return 0; //does not have zero  
 }
 
+//Handles all forking and exec'ing of commands. Execs the commands (if there are
+//any) for the processes with zero dependencies that have not been built.
+//Decriments the number of dependencies for parents.  Also handles timestamps.  
 int forkExec(Node **toBeExeced, int numElements){
 	int i;
 	int k = 0;
@@ -45,6 +51,8 @@ int forkExec(Node **toBeExeced, int numElements){
 		int status;
 		int recompile = 1;
 		//if recompile is 1, then build
+		
+		//-n flag set
 		if(commands[1] == 0){
 
 			recompile = 0;
@@ -98,6 +106,8 @@ int forkExec(Node **toBeExeced, int numElements){
 	return 1;
 }
 
+//Builds files in correct order. Returns -1 if any point fails. Returns 1 if 
+//successful.
 int run(){
 	list_item* copy = first;
 
@@ -125,6 +135,7 @@ int run(){
 	return r;
 }
 
+//Build dependency tree
 void assignParents()
 {
 	list_item* current = first;
@@ -156,6 +167,7 @@ void assignParents()
 	}
 }
 
+//Free allocated node
 void free_node(Node* other)
 {
 	if(other->target != NULL) free(other->target);
@@ -171,6 +183,7 @@ void free_node(Node* other)
 	free(other);
 }
 
+//Frees all
 void freeEverything()
 {
 	list_item* current = first;
@@ -186,6 +199,7 @@ void freeEverything()
 	}
 }
 
+//Removes non-targets so they will not be execed
 int removeNonTargets(char* argv)
 {
 	// build list of targets to keep
@@ -536,6 +550,7 @@ void show_error_message(char * lpszFileName)
 	exit(0);
 }
 
+//prints all nodes in tree. Used for error checking.
 void printNodes()
 {
 	list_item* current = first;
