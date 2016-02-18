@@ -14,7 +14,7 @@
 //linked list
 static list_item* first;
 
-int commands[3] = {0, 0, 0};
+static int commands[3] = {0, 0, 0};
 
 int hasZero(list_item * list)
 {
@@ -22,7 +22,7 @@ int hasZero(list_item * list)
 	while(current != NULL)
 	{
 		Node nd = *((Node *)current->item);
-		if((nd.numParents == 0) && (strcmp(nd.target, "clean") != 0)  ){
+		if(nd.numParents == 0){
 			return 1; //has zero, is not clean
 		}
 		current = current->next;
@@ -73,7 +73,7 @@ int run(){
 		while(copy != NULL)
 		{
 			Node nd = *((Node *)copy->item);
-			if((nd.numParents == 0) && (strcmp(nd.target,"clean") != 0)  ){
+			if(nd.numParents == 0){
 				((Node*)copy->item)->numParents = -10; //has zero, is not clean
 				//nodes_to_execute[i] = &nd;
 				nodes_to_execute[i] = ((Node*)copy->item);
