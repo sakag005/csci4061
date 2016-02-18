@@ -27,4 +27,5 @@ How to use Program:
 	otherwise getopt will terminate early.***
 
 Other Instructions:
+	If build troubles are persistent use -B flag.
 	Be happy.
