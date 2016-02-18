@@ -319,7 +319,7 @@ int parse(char * lpszFileName, char** defTarget)
 					list_item* new_item;
 					if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 					{	
-						printf("ERROR: Insufficient memory");
+						printf("ERROR: Insufficient memory\n");
 						return -1;
 					}
 
@@ -332,7 +332,7 @@ int parse(char * lpszFileName, char** defTarget)
 					list_item* new_item;
 					if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 					{	
-						printf("ERROR: Insufficient memory");
+						printf("ERROR: Insufficient memory\n");
 						return -1;
 					}
 					
@@ -344,7 +344,7 @@ int parse(char * lpszFileName, char** defTarget)
 			
 			if((nd  = (Node*)malloc(sizeof(Node))) == NULL)
 			{	
-				printf("ERROR: Insufficient memory");
+				printf("ERROR: Insufficient memory\n");
 				return -1;
 			}
 			nd->toParent = NULL;
@@ -357,7 +357,7 @@ int parse(char * lpszFileName, char** defTarget)
 				//copy target
 				if((nd->target = (char *)malloc(((int)(col - lpszLine)) * sizeof(char))) == NULL)
 				{	
-					printf("ERROR: Insufficient memory");
+					printf("ERROR: Insufficient memory\n");
 					return -1;
 				}
 				
@@ -377,7 +377,7 @@ int parse(char * lpszFileName, char** defTarget)
 				//copy dependencies
 				if((nd->dependencies = (char **)malloc(nd->sizeDepends * sizeof(char*))) == NULL)
 				{	
-					printf("ERROR: Insufficient memory");
+					printf("ERROR: Insufficient memory\n");
 					return -1;
 				}
 
