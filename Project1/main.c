@@ -40,6 +40,9 @@ int forkExec(Node **toBeExeced, int numElements){
 		if (strcmp (toBeExeced[i]->command, " ") != 0){	
 			execargc = makeargv (toBeExeced[i]->command," ",&execargv);
 			toBeExeced[i]->pid = childpid = fork();
+		}else
+		{
+			continue;
 		}
 		if (childpid == -1){
 			perror("Failed to Fork\n");
