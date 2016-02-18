@@ -7,7 +7,8 @@ Purpose:
 
 How to Compile:
 	Entering "make" in the command line compiles the program and returns an
-	an executable called make4061.
+	an executable called make4061 if default Makefie is present. Else enter
+	"gcc -o make4061 main.c util.c" in the terminal. 
 
 How to use Program:
        	To run from the shell, first compile the program using the method
