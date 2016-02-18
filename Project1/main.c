@@ -14,6 +14,8 @@
 //linked list
 static list_item* first;
 
+int commands[3] = {0, 0, 0};
+
 int hasZero(list_item * list)
 {
 	list_item* current = list;
@@ -533,10 +535,13 @@ int main(int argc, char **argv)
 				strcpy(szMakefile, strdup(optarg));
 				break;
 			case 'n':
+				commands[0] = 1;
 				break;
 			case 'B':
+				commands[1] = 1;
 				break;
 			case 'm':
+				commands[2] = 1;
 				strcpy(szLog, strdup(optarg));
 				break;
 			case 'h':
