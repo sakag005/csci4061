@@ -9,8 +9,79 @@
 
 #include "util.h"
 
+#define MAX_DEPENDS 10
+
 //linked list
 static list_item* first;
+
+int hasZero(list_item * list)
+{
+	list_item* current = list;
+	while(current != NULL)
+	{
+		Node nd = *((Node *)current->item);
+		if((nd.numParents == 0) && (strcmp(nd.target,"clean") != 0)  ){
+			return 1; //has zero, is not clean
+		}
+		current = current->next;
+	}
+	return 0; //does not have zero  
+}
+
+int forkExec(Node **toBeExeced, int numElements){
+	int i;
+	for(i=0;i<numElements;i++){
+		char **execargv;
+		pid_t childpid;
+		int execargc;
+		int status;
+	
+		execargc = makeargv (toBeExeced[i]->command," ",&execargv);
+		toBeExeced[i]->pid = childpid = fork();
+		if (childpid == -1){
+			perror("Failed to Fork\n");
+			return -1;
+		}
+		if(childpid ==0){
+			execvp(execargv[0],&execargv[0]);
+			return 1;
+		}
+		if(childpid > 0){
+			wait(&status);
+			if(toBeExeced[i]->toParent != NULL){
+				toBeExeced[i]->toParent->numParents--;
+			}
+		}
+		freemakeargv(execargv);
+	}
+	return 1;
+}
+
+void run(){
+	list_item* copy = first;
+
+	list_item* save = copy;
+	
+	while(hasZero(copy))
+	{
+		int i = 0;
+		Node** nodes_to_execute = malloc(sizeof(Node) * MAX_DEPENDS);
+		while(copy != NULL)
+		{
+			Node nd = *((Node *)copy->item);
+			if((nd.numParents == 0) && (strcmp(nd.target,"clean") != 0)  ){
+				((Node*)copy->item)->numParents = -10; //has zero, is not clean
+				//nodes_to_execute[i] = &nd;
+				nodes_to_execute[i] = ((Node*)copy->item);
+				i++;
+			}
+			copy = copy->next;
+		}  
+		forkExec(nodes_to_execute,i);
+		free(nodes_to_execute);
+		copy = save;
+	}
+}
 
 void assignParents()
 {
@@ -26,7 +97,7 @@ void assignParents()
 			Node* otherND = ((Node *)others->item);
 			
 			int j;
-			for(j = 0; j < nd->numParents; j++)
+			for(j = 0; j < nd->sizeDepends; j++)
 			{
 				if(strcmp(otherND->target, nd->dependencies[j]) == 0)
 				{
@@ -43,8 +114,119 @@ void assignParents()
 	}
 }
 
+void free_node(Node* other)
+{
+	if(other->target != NULL) free(other->target);
+	if(strcmp(other->command,  " ") != 0)
+		free(other->command);
+
+	int i;
+	for(i = 0; i < other->sizeDepends; i++)
+		free(other->dependencies[i]);
+
+	if((other->sizeDepends)>0) free(other->dependencies);
+	
+	free(other);
+}
+
+void removeNonTargets(char* argv)
+{
+	// build list of targets to keep
+	char* target = argv;
+	list_item* current = first;
+	list_item* n_first;
+	
+	Node* nd;
+	//find the node in the linked list structure
+	while(current != NULL)
+	{
+		nd = ((Node *)current->item);
+		if(strcmp(target, nd->target) == 0)
+		{
+			//capture current location in case the rest of the list is deleted
+			n_first = current;
+			break;
+		}
+		
+		current = current->next;
+	}
+	
+	//We will not be executing anything after target
+	nd->toParent = NULL;
+	
+	if(nd->numParents == 0)
+	{
+		current = first;
+		list_item* temp;
+		while(current != NULL)
+		{
+			temp = current;
+			current = current->next;
+			
+			Node* other = ((Node *)temp->item);
+			//free irrelevant nodes
+			if(nd != other)
+			{
+				free_node(other);
+				if(temp != first) free(temp);
+			}
+		}
+		
+		if(first != n_first)
+		{	
+			free(first);
+			first = n_first;
+		}
+		first->next = NULL;
+	}else
+	{
+		
+		current = first;
+		list_item* temp;
+		list_item* lastValid = first;
+		while(current != NULL)
+		{
+			temp = current;
+			current = current->next;
+			
+			Node* other = ((Node *)temp->item);
+			
+			//look for dependencies
+			int dependsOn = 0;
+			
+			Node* check = other;
+			while(check != NULL)
+			{
+				if(check == nd)
+				{
+					dependsOn = 1;
+					break;
+				}
+				check = check->toParent;
+			}
+			
+			//keep in global list if dependency, otherwise delete from list
+			if(dependsOn)
+			{
+				lastValid = temp;
+				
+			}else if(temp == first){ //want to update first element in linked list if it needs to be deleted
+				first = current;
+				lastValid = first;			
+				free_node(other);
+				free(temp);
+			}else
+			{
+				free_node(other);
+				lastValid->next = temp->next;
+				free(temp);
+			}
+		}
+	}
+}
+
 //This function will parse makefile input from user or default makeFile. 
-int parse(char * lpszFileName)
+int parse(char * lpszFileName, char** defTarget)
 {
 	int nLine=0;
 	char szLine[1024];
@@ -101,8 +283,18 @@ int parse(char * lpszFileName)
 		{
 			if(lastTab == 0)
 			{
+				nd->command = " ";
 				if(firstNode)
 				{
+					/*if((*defTarget = (char *)malloc(sizeof(char)*strlen(nd->target))) == NULL)
+					{	
+						printf("ERROR: Insufficient memory");
+						return -1;
+					}
+					strcpy(*defTarget, nd->target);*/
+					*defTarget = nd->target;
+					//printf("WHAT IS THIS %s\n", *defTarget);
+					
 					list_item* new_item;
 					if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 					{	
@@ -135,6 +327,7 @@ int parse(char * lpszFileName)
 				return -1;
 			}
 			nd->toParent = NULL;
+			nd->numParents = 0;
 			//look for colon
 			char* col = strchr(lpszLine, ':');
 		
@@ -149,7 +342,7 @@ int parse(char * lpszFileName)
 				
 				strncpy(nd->target, lpszLine, (int)(col - lpszLine));
 
-				nd->numParents = 0;
+				nd->sizeDepends = 0;
 				
 				int sizeDep = strlen(col);
 				
@@ -157,11 +350,11 @@ int parse(char * lpszFileName)
 				for(j = 1; j < sizeDep; j++)
 				{
 					if((col[j] != ' ') && (col[j-1] == ' '))
-						nd->numParents++;
+						nd->sizeDepends++;
 				}
 
 				//copy dependencies
-				if((nd->dependencies = (char **)malloc(nd->numParents * sizeof(char*))) == NULL)
+				if((nd->dependencies = (char **)malloc(nd->sizeDepends * sizeof(char*))) == NULL)
 				{	
 					printf("ERROR: Insufficient memory");
 					return -1;
@@ -216,6 +409,14 @@ int parse(char * lpszFileName)
 			//add node to the front of the global linked list
 			if(firstNode)
 			{
+				/*if((*defTarget = (char *)malloc(sizeof(char)*strlen(nd->target))) == NULL)
+				{	
+					printf("ERROR: Insufficient memory");
+					return -1;
+				}
+				strcpy(*defTarget, nd->target);*/
+				*defTarget = nd->target;
+				
 				list_item* new_item;
 				if((new_item = (list_item *)malloc(sizeof(list_item))) == NULL)
 				{	
@@ -341,24 +542,27 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
-	//You may start your program by setting the target that make4061 should build.
-	//if target is not set, set it to default (first target from makefile)
-	if(argc == 1)
-	{
-	}
-	else
-	{
-	}
-
+	char* defTarget;
 	/* Parse graph file or die */
-	if((parse(szMakefile)) == -1) 
+	if((parse(szMakefile, &defTarget)) == -1) 
 	{
 		return EXIT_FAILURE;
 	}
 	
 	assignParents();
 	
-	printNodes();
+	//You may start your program by setting the target that make4061 should build.
+	//if target is not set, set it to default (first target from makefile)
+	if(argc == 1)
+	{
+		removeNonTargets(argv[0]);
+	}
+	else
+	{
+		removeNonTargets(defTarget);
+	}
+	//printNodes();
+	run();
 
 	//after parsing the file, you'll want to check all dependencies (whether they are available targets or files)
 	//then execute all of the targets that were specified on the command line, along with their dependencies, etc.
