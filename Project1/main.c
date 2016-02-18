@@ -159,12 +159,12 @@ void freeEverything()
 	}
 }
 
-void removeNonTargets(char* argv)
+int removeNonTargets(char* argv)
 {
 	// build list of targets to keep
 	char* target = argv;
 	list_item* current = first;
-	list_item* n_first;
+	list_item* n_first = NULL;
 	
 	Node* nd;
 	//find the node in the linked list structure
@@ -180,6 +180,7 @@ void removeNonTargets(char* argv)
 		
 		current = current->next;
 	}
+	if(n_first == NULL) return -1;
 	
 	//We will not be executing anything after target
 	nd->toParent = NULL;
@@ -253,6 +254,8 @@ void removeNonTargets(char* argv)
 			}
 		}
 	}
+	
+	return 1;
 }
 
 //This function will parse makefile input from user or default makeFile. 
@@ -612,11 +615,19 @@ int main(int argc, char **argv)
 	//if target is not set, set it to default (first target from makefile)
 	if(argc == 1)
 	{
-		removeNonTargets(argv[0]);
+		if(removeNonTargets(argv[0]))
+		{
+			printf("Error: target was not found");
+			return EXIT_FAILURE;
+		}
 	}
 	else
 	{
-		removeNonTargets(defTarget);
+		if(removeNonTargets(defTarget))
+		{
+			printf("Error: target was not found");
+			return EXIT_FAILURE;
+		}
 	}
 
 	//printNodes();
