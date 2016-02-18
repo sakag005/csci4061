@@ -1,7 +1,7 @@
                                     # this line is fine, you can skip this, below line also contains white space.... 
                                                                    
 
-make4061: 
+asdf: 
 	echo "hello"
 clean:
 	rm make4061 makeargv.o
