@@ -1,3 +1,9 @@
+/* CSci4061 S2016 Assignment 1
+ * login: rurik003 (login used to submit)
+ * date: 02/17/16
+ * name: William Rurik, Michael Jacobson, Peter Sakaguchi (for partner(s))
+ * id: 4618256, 4377605, 4620018 */
+
 Purpose:
 	Builds executable programs or libraries from source files based on a 
 	makefile. It does the Following:

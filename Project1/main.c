@@ -1,3 +1,8 @@
+/* CSci4061 S2016 Assignment 1
+ * login: rurik003 (login used to submit)
+ * date: 02/17/16
+ * name: William Rurik, Michael Jacobson, Peter Sakaguchi (for partner(s))
+ * id: 4618256, 4377605, 4620018 */
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -62,7 +67,7 @@ int forkExec(Node **toBeExeced, int numElements){
 				int parent_timestamp = get_file_modification_time(toBeExeced[i]->target);
 
 				//if the timestamp for one doesn't exist, or the timestamp of the child is greater (newer) than the parent
-				if(comp < 2){
+				if(comp < 2 || (parent_timestamp == -1)){
 					recompile = 1;
 				}
 			}
@@ -361,12 +366,6 @@ int parse(char * lpszFileName, char** defTarget)
 				
 				if(firstNode)
 				{
-					/*if((*defTarget = (char *)malloc(sizeof(char)*strlen(nd->target))) == NULL)
-					{	
-						printf("ERROR: Insufficient memory");
-						return -1;
-					}
-					strcpy(*defTarget, nd->target);*/
 					*defTarget = nd->target;
 					//printf("WHAT IS THIS %s\n", *defTarget);
 
@@ -484,12 +483,6 @@ int parse(char * lpszFileName, char** defTarget)
 			//add node to the front of the global linked list
 			if(firstNode)
 			{
-				/*if((*defTarget = (char *)malloc(sizeof(char)*strlen(nd->target))) == NULL)
-				{	
-					printf("ERROR: Insufficient memory");
-					return -1;
-				}
-				strcpy(*defTarget, nd->target);*/
 				*defTarget = nd->target;
 				
 				list_item* new_item;
