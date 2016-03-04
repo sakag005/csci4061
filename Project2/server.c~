@@ -190,7 +190,6 @@ int main(int argc, char **argv)
 	int fd_serv_read[2];
 
 	int flags = fcntl(fd_serv_read[0], F_GETFL, 0);
-	fcntl(fd_serv_read[0], F_SETFL, flags | O_NONBLOCK);
 
 	if(pipe(fd_serv_write) == -1)
 	{
