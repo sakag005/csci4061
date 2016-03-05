@@ -91,6 +91,7 @@ int main(int argc, char **argv)
 	
 	if(f == 0)
 	{
+
 		if(close(fd_child[1]) == -1)
 		{
 			perror("close read pipe failed!");
@@ -104,11 +105,11 @@ int main(int argc, char **argv)
 			{
 				printf("%s\n", buf);
 				//do something
-			}else
+			}/*else
 			{
 				perror("error reading in shell!");
 				exit(-1);
-			}
+			}*/
 		}
 	}
 
@@ -140,9 +141,6 @@ int main(int argc, char **argv)
 				perror("write failed!");
 				exit(-1);
 			}
-		}else
-		{
-			printf("whatzup dawg\n");
 		}
 	}
 
