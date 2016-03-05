@@ -56,34 +56,72 @@ int main(int argc, char **argv)
 {
 	
 	/***** Insert YOUR code *******/
-	
+	char* name;
+	int fd_serv[2];
+	int fd_child[2];
 	
 	/* Extract pipe descriptors and name from argv */
-	char* name = argv[1];
-
-	int fd_serv_write[2] = {atoi(argv[2]), atoi(argv[3])};
-	int fd_serv_read[2] = {atoi(argv[4]), atoi(argv[5])};
-
-	if(close(fd_serv_read[1]) == -1)
+	if(argc == 4)
 	{
-		perror("close failed!");
-		exit(-1);
-	}
-	if(close(fd_serv_write[0]) == -1)
-	{
-		perror("close failed!");
-		exit(-1);
+		name = argv[1];
+
+		fd_serv[0] = atoi(argv[2]);
+		fd_serv[1] = atoi(argv[3]);
+		fd_child[0] = atoi(argv[4])
+		fd_child[1] = atoi(argv[5]);
+
+		if(close(fd_serv[0]) == -1)
+		{
+			perror("close write pipe failed!");
+			exit(-1);
+		}
 	}
 
 	/* Fork a child to read from the pipe continuously */
+	int f;
+	if((f = fork()) == -1)
+	{
+		perror("shell fork failed!");
+		exit(-1);
+	}
 
 	/*
 	 * Once inside the child
 	 * look for new data from server every 1000 usecs and print it
 	 */ 
+	
+	if(f == 0)
+	{
+		if(close(fd_child[1]) == -1)
+		{
+			perror("close read pipe failed!");
+			exit(-1);
+		}
+		char* buf[MSG_SIZE];
+		while(1)
+		{
+			usleep(1000);
+			if(read(fd_child[0], buf, MSG_SIZE) != -1)
+			{
+				//do something
+			}else
+			{
+				perror("error reading in shell!");
+				exit(-1);
+			}
+		}
+	}
 
 	/* Inside the parent
 	 * Send the child's pid to the server for later cleanup
 	 * Start the main shell loop
 	 */
+	
+
+
+
+
+
+
+
 }
