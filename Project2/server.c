@@ -192,6 +192,9 @@ int main(int argc, char **argv)
 	int flags = fcntl(fd_child[0], F_GETFL, 0);
 	fcntl(fd_child[0], F_SETFL, flags | O_NONBLOCK);
 
+	flags =  fcntl(fd_serv[0], F_GETFL, 0);
+	fcntl(fd_serv[0], F_SETFL, flags | O_NONBLOCK);
+
 	if(pipe(fd_serv) == -1)
 	{
 		perror("pipe failed!");
@@ -241,7 +244,17 @@ int main(int argc, char **argv)
 		while (1) {
 			/* Let the CPU breathe */
 			usleep(1000);
-
+			int numBytes;
+			char buf[MSG_SIZE];
+			if((numBytes = read(fd_serv[0], buf, MSG_SIZE)) != -1)
+			{
+				if(write(fd_child[1], buf, numBytes) == -1)
+				{
+					perror("write failed");
+					exit(-1);
+				}
+				//do something
+			}
 			/* 
 		 	 * 1. Read the message from server's shell, if any
 		 	 * 2. Parse the command

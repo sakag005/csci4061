@@ -61,21 +61,20 @@ int main(int argc, char **argv)
 	int fd_child[2];
 	
 	/* Extract pipe descriptors and name from argv */
-	if(argc == 4)
+	
+	name = argv[1];
+
+	fd_serv[0] = atoi(argv[2]);
+	fd_serv[1] = atoi(argv[3]);
+	fd_child[0] = atoi(argv[4]);
+	fd_child[1] = atoi(argv[5]);
+
+	if(close(fd_serv[0]) == -1)
 	{
-		name = argv[1];
-
-		fd_serv[0] = atoi(argv[2]);
-		fd_serv[1] = atoi(argv[3]);
-		fd_child[0] = atoi(argv[4]);
-		fd_child[1] = atoi(argv[5]);
-
-		if(close(fd_serv[0]) == -1)
-		{
-			perror("close write pipe failed!");
-			exit(-1);
-		}
+		perror("close write pipe failed!");
+		exit(-1);
 	}
+	
 
 	/* Fork a child to read from the pipe continuously */
 	int f;
@@ -97,12 +96,13 @@ int main(int argc, char **argv)
 			perror("close read pipe failed!");
 			exit(-1);
 		}
-		char* buf[MSG_SIZE];
+		char buf[MSG_SIZE];
 		while(1)
 		{
 			usleep(1000);
 			if(read(fd_child[0], buf, MSG_SIZE) != -1)
 			{
+				printf("%s\n", buf);
 				//do something
 			}else
 			{
@@ -112,16 +112,38 @@ int main(int argc, char **argv)
 		}
 	}
 
+	if(close(fd_child[1]) == -1)
+	{
+		perror("close child pipe failed!");
+		exit(-1);
+	}
+	if(close(fd_child[0]) == -1)
+	{
+		perror("close child pipe failed!");
+		exit(-1);
+	}
+	
 	/* Inside the parent
 	 * Send the child's pid to the server for later cleanup
 	 * Start the main shell loop
 	 */
 	
-
-
-
-
-
-
+	while(1)
+	{
+		usleep(1000);
+		char* line;
+		if((line = sh_read_line()) != NULL)
+		{
+			size_t len = strlen(line);
+			if(write(fd_serv[1], line, len) == -1)
+			{
+				perror("write failed!");
+				exit(-1);
+			}
+		}else
+		{
+			printf("whatzup dawg\n");
+		}
+	}
 
 }
