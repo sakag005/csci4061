@@ -185,10 +185,6 @@ int main(int argc, char **argv)
 	/***** Insert YOUR code *******/
 	
 	/* open non-blocking bi-directional pipes for communication with server shell */
-<<<<<<< HEAD
-  
-=======
->>>>>>> d7645e5ae3315b957d3104454f3f5150a5e13df6
 	int fd_serv[2];
 	int fd_child[2];
 

@@ -185,6 +185,10 @@ int main(int argc, char **argv)
 	/***** Insert YOUR code *******/
 	
 	/* open non-blocking bi-directional pipes for communication with server shell */
+<<<<<<< HEAD
+  
+=======
+>>>>>>> d7645e5ae3315b957d3104454f3f5150a5e13df6
 	int fd_serv[2];
 	int fd_child[2];
 
@@ -268,6 +272,7 @@ int main(int argc, char **argv)
 		numBytes = read(fd_serv[0], buf, MSG_SIZE);
 		if(numBytes != -1 && numBytes != 0)
 		{
+			
 			if(write(fd_child[1], buf, numBytes) == -1)
 			{
 				perror("write failed");
