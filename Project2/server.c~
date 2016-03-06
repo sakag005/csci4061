@@ -185,15 +185,8 @@ int main(int argc, char **argv)
 	/***** Insert YOUR code *******/
 	
 	/* open non-blocking bi-directional pipes for communication with server shell */
-
 	int fd_serv[2];
 	int fd_child[2];
-
-	int flags = fcntl(fd_child[0], F_GETFL, 0);
-	fcntl(fd_child[0], F_SETFL, flags | O_NONBLOCK);
-
-	flags =  fcntl(fd_serv[0], F_GETFL, 0);
-	fcntl(fd_serv[0], F_SETFL, flags | O_NONBLOCK);
 
 	if(pipe(fd_serv) == -1)
 	{
@@ -204,7 +197,13 @@ int main(int argc, char **argv)
 	{	
 		perror("pipe failed!");
 		exit(-1);
-	}	
+	}
+
+	int flags = fcntl(fd_child[0], F_GETFL, 0);
+	fcntl(fd_child[0], F_SETFL, flags | O_NONBLOCK);
+
+	int flags2 =  fcntl(fd_serv[0], F_GETFL, 0);
+	fcntl(fd_serv[0], F_SETFL, flags2 | O_NONBLOCK);	
 	
 	char fd_servread[20];
 	char fd_servwrite[20];
@@ -215,6 +214,8 @@ int main(int argc, char **argv)
 	sprintf(fd_servwrite, "%d", fd_serv[1]);
 	sprintf(fd_childread, "%d", fd_child[0]);
 	sprintf(fd_childwrite, "%d", fd_child[1]);
+
+	
 	
 	/* Fork the server shell */
 
@@ -255,21 +256,32 @@ int main(int argc, char **argv)
 		/* Start a loop which runs every 1000 usecs.
 	 	 * The loop should read messages from the server shell, parse them using the 
 	 	 * parse_command() function and take the appropriate actions. */
-		while (1) {
-			/* Let the CPU breathe */
-			usleep(1000);
-			int numBytes;
-			char buf[MSG_SIZE];
-			if((numBytes = read(fd_serv[0], buf, MSG_SIZE)) != -1)
+	while (1)
+	{
+		/* Let the CPU breathe */
+		
+		usleep(1000);
+		
+		int numBytes;
+		char buf[MSG_SIZE];
+
+		numBytes = read(fd_serv[0], buf, MSG_SIZE);
+		if(numBytes != -1 && numBytes != 0)
+		{
+			printf("received\n\n");				
+			if(write(fd_child[1], buf, numBytes) == -1)
 			{
-				printf("received\n");				
-				if(write(fd_child[1], buf, numBytes) == -1)
-				{
-					perror("write failed");
-					exit(-1);
-				}
-				//do something
+				perror("write failed");
+				exit(-1);
 			}
+			//do something
+		}else if(numBytes == 0)
+		{
+
+			perror("read from pipe failed!");
+			exit(-1);
+		}
+		
 			/* 
 		 	 * 1. Read the message from server's shell, if any
 		 	 * 2. Parse the command

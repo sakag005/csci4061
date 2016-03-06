@@ -61,7 +61,6 @@ int main(int argc, char **argv)
 	int fd_child[2];
 	
 	/* Extract pipe descriptors and name from argv */
-	
 	name = argv[1];
 
 	fd_serv[0] = atoi(argv[2]);
