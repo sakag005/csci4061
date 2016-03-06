@@ -96,10 +96,11 @@ int main(int argc, char **argv)
 			perror("close read pipe failed!");
 			exit(-1);
 		}
-		char buf[MSG_SIZE];
+		
 		while(1)
 		{
 			usleep(1000);
+			char buf[MSG_SIZE];
 			if(read(fd_child[0], buf, MSG_SIZE) != -1)
 			{
 				printf("%s\n", buf);

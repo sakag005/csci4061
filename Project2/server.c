@@ -268,6 +268,7 @@ int main(int argc, char **argv)
 		numBytes = read(fd_serv[0], buf, MSG_SIZE);
 		if(numBytes != -1 && numBytes != 0)
 		{
+			
 			if(write(fd_child[1], buf, numBytes) == -1)
 			{
 				perror("write failed");
