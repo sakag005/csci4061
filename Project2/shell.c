@@ -103,7 +103,9 @@ int main(int argc, char **argv)
 			char buf[MSG_SIZE];
 			if(read(fd_child[0], buf, MSG_SIZE) != -1)
 			{
-				printf("%s\n", buf);
+				//print_prompt(name);			
+				printf("%s", buf);
+				
 				//do something
 			}/*else
 			{
@@ -128,15 +130,16 @@ int main(int argc, char **argv)
 	 * Send the child's pid to the server for later cleanup
 	 * Start the main shell loop
 	 */
-	
+	print_prompt(name);
 	while(1)
 	{
 		usleep(1000);
 		char* line;
 		if((line = sh_read_line()) != NULL)
 		{
+			print_prompt(name);
 			size_t len = strlen(line);
-			if(write(fd_serv[1], line, len) == -1)
+			if(write(fd_serv[1], line, len+1) == -1)
 			{
 				perror("write failed!");
 				exit(-1);
