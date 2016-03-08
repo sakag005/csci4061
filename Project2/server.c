@@ -7,6 +7,9 @@
 #include <sys/types.h>
 #include "util.h"
 
+static server_ctrl_t server_stuff;
+static int main_pids[MAX_USERS];
+
 /*
  * Identify the command used at the shell 
  */
@@ -61,6 +64,33 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 	 * NOTE: You may want to remove any newline characters from the name string 
 	 * before adding it. This will help in future name-based search.
 	 */ 
+
+/*	int user_index = -1;
+	int i;
+	for(i = 0; i < MAX_USERS; i++)
+	{
+		if(users[i].status == SLOT_EMPTY)
+		{
+			user_index = i;
+			break;
+		}
+	}
+	if(user_index != -1)
+	{
+		users[user_index].status = SLOT_FULL;		
+		if(pipe(users[user_index].ptoc) < 0)
+			perror("error setting up user communication");
+
+		if(pipe(users[user_index].ctop) < 0)
+			perror("error setting up user communication");
+
+		//fork and xterm pending
+		if(write(fd, buf, strlen(buf)+1) < 0)
+			perror("error adding user");
+	}else
+	{
+		perror("user limit has been reached!");
+	}*/
 }
 
 /*
@@ -183,6 +213,14 @@ int main(int argc, char **argv)
 {
 	
 	/***** Insert YOUR code *******/
+	static user_chat_box_t users[MAX_USERS];
+
+	int i;
+	for(i = 0; i < MAX_USERS; i++)
+	{
+		users[i].status = SLOT_EMPTY;
+		main_pids[i] = 0;
+	}
 	
 	/* open non-blocking bi-directional pipes for communication with server shell */
 	int fd_serv[2];
@@ -233,12 +271,14 @@ int main(int argc, char **argv)
 	}
 	if(f == 0)
 	{		
-		if(execlp("./shell", "shell", "Server", fd_servread, fd_servwrite, fd_childread, fd_childwrite, (char*)0) == -1)
+		if(execlp("./shell", "shell", "Server", fd_servread, fd_servwrite, fd_childread, fd_childwrite, "1", (char*)0) == -1)
 		{
 			perror("failed to exec!");
 			exit(-1);
 		}
 	}
+
+	main_pids[0] = f;
 	
 	if(close(fd_serv[1]) == -1)
 	{
@@ -251,6 +291,10 @@ int main(int argc, char **argv)
 		perror("closing child pipe failed!");
 		exit(-1);
 	}
+
+	server_stuff.ptoc[1] = fd_child[0];
+	server_stuff.ctop[0] = fd_serv[1];
+
 	/* Inside the parent. This will be the most important part of this program. */
 
 		/* Start a loop which runs every 1000 usecs.
@@ -273,6 +317,10 @@ int main(int argc, char **argv)
 				perror("write failed");
 				exit(-1);
 			}
+
+			if(starts_with(buf, EXIT_CMD))
+				break;
+
 			//do something
 		}else if(numBytes == 0)
 		{
@@ -322,6 +370,34 @@ int main(int argc, char **argv)
 		 	 */
 
 	}	/* while loop ends when server shell sees the \exit command */
+	
+	cleanup_users(users);
+	if(close(fd_serv[0]) == -1)
+	{
+		perror("closing server pipe failed!");
+		exit(-1);
+	}
+
+	if(close(fd_child[1]) == -1)
+	{
+		perror("closing child pipe failed!");
+		exit(-1);
+	}
+
+
+	/*for(int i = 0; i < MAX_USERS; i++)
+	{
+		if(main_pids[i] != 0)
+		{
+			if(kill(main_pids[i]) == -1)
+			{
+				perror("error closing processes");
+				exit(-1);
+			}
+		}
+	}*/
+
+	
 
 	return 0;
 }
