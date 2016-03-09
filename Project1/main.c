@@ -61,7 +61,7 @@ int forkExec(Node **toBeExeced, int numElements){
 		//-n flag set
 		if(commands[1] == 0){
 
-			recompile = 0;
+			recompile = 1;
 			for(k = 0;k<toBeExeced[i]->sizeDepends;k++){
 				comp = compare_modification_time(toBeExeced[i]->dependencies[k],toBeExeced[i]->target);
 				int child_timestamp = get_file_modification_time(toBeExeced[i]->dependencies[k]);
