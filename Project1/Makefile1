@@ -1,0 +1,11 @@
+all: test4061
+	echo 'test4061'
+
+test4061: test.o test.c test1
+	gcc -o test4061 test.o
+
+test.o: test.c
+	gcc -c test.c
+
+clean:
+	rm -rf test.o
