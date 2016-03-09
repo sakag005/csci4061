@@ -1,0 +1,8 @@
+all: maketest
+
+maketest: main.c  test.o
+	gcc -o maketest main.c util.c
+test.o: bogus
+	gcc -c util.c
+clean:
+	rm maketest makeargv.o

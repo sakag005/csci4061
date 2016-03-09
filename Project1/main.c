@@ -15,6 +15,7 @@
 #include "util.h"
 
 #define MAX_DEPENDS 10
+#define MAX_LINE_LENGTH 1024
 
 //linked list
 static list_item* first;
@@ -144,6 +145,10 @@ int run(){
 void assignParents()
 {
 	list_item* current = first;
+	int totalDep = 0;
+	int actualDep = 0;
+	int tempDep =0;
+	int counter =0;
 	while(current != NULL)
 	{
 		Node* nd = ((Node *)current->item);		
@@ -153,22 +158,39 @@ void assignParents()
 		while(others != NULL)
 		{
 			Node* otherND = ((Node *)others->item);
-			
+			char* token = NULL;
 			int j;
+			
 			for(j = 0; j < nd->sizeDepends; j++)
 			{
+			  char * depStorage;
+			  depStorage = (char *)malloc(MAX_LINE_LENGTH * sizeof(char));
+			  strncpy(depStorage, nd->dependencies[j],MAX_LINE_LENGTH);
 				if(strcmp(otherND->target, nd->dependencies[j]) == 0)
 				{
-					otherND->toParent = nd;
+				        otherND->toParent = nd;
 					depCounter++;
+				}else if((token = strchr(depStorage,'.'))!= NULL){
+				  if(strcmp(token, ".c") == 0){
+				    tempDep++;
+				  }
 				}
 			}
-			
+			counter++;
 			others = others->next;
 		}
-		
+		tempDep = tempDep/counter;
+		counter =0;
+		totalDep += nd->sizeDepends;
+		actualDep += depCounter;
+		actualDep += tempDep;
+		tempDep = 0;
 		nd->numTargetDep = depCounter;
 		current = current->next;
+	}
+	
+	if (totalDep != actualDep){
+	  printf("ERROR ERROR BOGUS DEP\n");
 	}
 }
 
@@ -428,6 +450,7 @@ int parse(char * lpszFileName, char** defTarget)
 				}
 
 				//copy dependencies
+				//Problem here for no dependencies?
 				if((nd->dependencies = (char **)malloc(nd->sizeDepends * sizeof(char*))) == NULL)
 				{	
 					printf("ERROR: Insufficient memory\n");
