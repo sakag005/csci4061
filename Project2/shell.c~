@@ -4,6 +4,8 @@
 #include <signal.h>
 #include "util.h"
 
+
+static int isServer;
 /*
  * Read a line from stdin.
  */
@@ -68,6 +70,8 @@ int main(int argc, char **argv)
 	fd_child[0] = atoi(argv[4]);
 	fd_child[1] = atoi(argv[5]);
 
+	isServer = (argv[6][0] == '1')? 1 : 0;
+
 	if(close(fd_serv[0]) == -1)
 	{
 		perror("close write pipe failed!");
@@ -103,6 +107,9 @@ int main(int argc, char **argv)
 			char buf[MSG_SIZE];
 			if(read(fd_child[0], buf, MSG_SIZE) != -1)
 			{
+				
+				if(isServer && starts_with(buf, EXIT_CMD))
+					exit(0);
 				//print_prompt(name);			
 				printf("%s", buf);
 				
@@ -144,7 +151,11 @@ int main(int argc, char **argv)
 				perror("write failed!");
 				exit(-1);
 			}
+			if(isServer && starts_with(line, EXIT_CMD))
+				break;
 		}
 	}
+
+	return 0;
 
 }
