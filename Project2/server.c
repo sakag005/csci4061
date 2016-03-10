@@ -65,12 +65,16 @@ int list_users(user_chat_box_t *users, int fd)
 }
 
 //Tests how to exterm 
-//Works and holds. to change to non-holding (will result in window closing as 
+//Works and holds. to change to holding (will result in window closing as 
 //shell code is incomplete) change "-hold" to "+hold"
 //
 void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index){
   int f;
-  char * result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2);
+  char * result; 
+  if((result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2))== NULL){
+    perror("ERROR INSUFFICIENT MEMORY\n");
+    exit(-1);
+  }
 
   strncpy (result, CURR_DIR, (strlen(CURR_DIR)+1));
   strcat (result, "/");
@@ -78,7 +82,7 @@ void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int inde
   //fprintf (stderr,"Result: %s\n", result);
   if((f = fork()) == -1)
 	{
-		perror("fork failed!");
+		perror("fork failed!\n");
 		exit(-1);
 	}
   if(f == 0){
