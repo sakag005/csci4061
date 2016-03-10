@@ -397,6 +397,11 @@ int main(int argc, char **argv)
 				case BROADCAST:
 					broadcast_msg(users, buf, fd_serv[1], "Server");
 					break;
+				case CHILD_PID:
+				{
+					char* chpid = extract_name(CHILD_PID, buf);
+					srvr.child_pid = atoi(chpid);
+				}break;
 				default:
 					break;
 			}
@@ -438,6 +443,11 @@ int main(int argc, char **argv)
 						case BROADCAST:
 							broadcast_msg(users, bufUser, fd_serv[1], users[i].name);
 							break;
+						case CHILD_PID:
+						{
+							char* chpid = extract_name(CHILD_PID, bufUser);
+							users[i].child_pid = atoi(chpid);
+						}break;
 						default:
 							break;
 					}

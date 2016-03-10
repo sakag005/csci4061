@@ -144,6 +144,16 @@ int main(int argc, char **argv)
 	 * Send the child's pid to the server for later cleanup
 	 * Start the main shell loop
 	 */
+	char childPID[20];
+
+	sprintf(childPID, "%s %d", CMD_CHILD_PID, f);
+
+	if(write(fd_child[1], childPID, strlen(childPID)+1) == -1)
+	{
+		perror("write failed!");
+		exit(-1);
+	}
+	
 	print_prompt(name);
 	while(1)
 	{
