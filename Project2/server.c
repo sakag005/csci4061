@@ -222,6 +222,23 @@ void close_pipes(int idx, user_chat_box_t *users)
 void cleanup_user(int idx, user_chat_box_t *users)
 {
 	/***** Insert YOUR code *******/
+	if(close(users[idx].ptoc[1]) == -1)
+		perror("error closing user pipe!");
+
+	if(close(users[idx].ctop[0]) == -1)
+		perror("error closing user pipe!");
+
+	if((kill(users[idx].pid, 0) == -1)  && errno != ESRCH)
+	{
+		perror("error ending user shell process!");
+	}
+
+	if((kill(users[idx].child_pid, 0) == -1) && errno != ESRCH)
+	{
+		perror("error ending user shell process!");
+	}
+
+	users[idx].status = SLOT_EMPTY;
 }
 
 /*
@@ -246,6 +263,28 @@ void cleanup_users(user_chat_box_t *users)
 void cleanup_server(server_ctrl_t server_ctrl)
 {
 	/***** Insert YOUR code *******/
+	if (write(server_ctrl.ptoc[1], CMD_EXIT, strlen(CMD_EXIT) + 1) < 0)
+		perror("write to child shell failed");
+
+	if(close(server_ctrl.ptoc[1]) == -1)
+	{
+		perror("closing server pipe failed!");
+	}
+
+	if(close(server_ctrl.ctop[0]) == -1)
+	{
+		perror("closing child pipe failed!");
+	}
+
+	if((kill(server_ctrl.pid, 0) == -1)  && errno != ESRCH)
+	{
+		perror("error ending server shell process!");
+	}
+
+	if((kill(server_ctrl.child_pid, 0) == -1) && errno != ESRCH)
+	{
+		perror("error ending server shell process!");
+	}
 }
 
 /*
@@ -508,32 +547,7 @@ int main(int argc, char **argv)
 	}	/* while loop ends when server shell sees the \exit command */
 	
 	cleanup_users(users);
-	if(close(fd_serv[1]) == -1)
-	{
-		perror("closing server pipe failed!");
-		exit(-1);
-	}
-
-	if(close(fd_child[0]) == -1)
-	{
-		perror("closing child pipe failed!");
-		exit(-1);
-	}
-
-
-	/*for(int i = 0; i < MAX_USERS; i++)
-	{
-		if(main_pids[i] != 0)
-		{
-			if(kill(main_pids[i]) == -1)
-			{
-				perror("error closing processes");
-				exit(-1);
-			}
-		}
-	}*/
-
-	
+	cleanup_server(srvr);
 
 	return 0;
 }
