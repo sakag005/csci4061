@@ -131,7 +131,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		char* namecpycmd = strdup(buf);
 		strcpy(users[user_index].name, extract_name(ADD_USER, namecpycmd));
 		char *msg = "Adding user ";
-		char *eom = "... \n";
+		char *eom = "...";
 		char * result; 
 		if((result = malloc(strlen(msg)+strlen(users[user_index].name) + strlen(eom) + 1))== NULL){
 		  perror("ERROR INSUFFICIENT MEMORY\n");
@@ -184,7 +184,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 {
 	int i;
-	const char *msg = "Broadcasting...\n", *s;
+	const char *msg = "Broadcasting...", *s;
 	char text[MSG_SIZE];
 
 	/* Notify on server shell */
