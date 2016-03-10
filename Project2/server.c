@@ -36,6 +36,22 @@ int parse_command(char *buf)
 }
 
 /*
+ * Utility function.
+ * Given a command's input buffer, extract name.
+ */
+char *extract_name(int cmd, char *buf)
+{
+	char *s = NULL;
+
+	s = strtok(buf, " ");
+	s = strtok(NULL, " ");
+	if (cmd == P2P)
+		return s;	/* s points to the name as no newline after name in P2P */
+	s = strtok(s, "\n");	/* other commands have newline after name, so remove it*/
+	return s;
+}
+
+/*
  * List the existing users on the server shell
  */
 int list_users(user_chat_box_t *users, int fd)
@@ -48,6 +64,33 @@ int list_users(user_chat_box_t *users, int fd)
 	 /***** Insert YOUR code *******/
 }
 
+//Tests how to exterm 
+//Works and holds. to change to non-holding (will result in window closing as 
+//shell code is incomplete) change "-hold" to "+hold"
+//
+void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index){
+  int f;
+  char * result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2);
+
+  strncpy (result, CURR_DIR, (strlen(CURR_DIR)+1));
+  strcat (result, "/");
+  strcat (result, SHELL_PROG);
+  fprintf (stderr,"Result: %s\n", result);
+  if((f = fork()) == -1)
+	{
+		perror("fork failed!");
+		exit(-1);
+	}
+  if(f == 0){
+    execl(XTERM_PATH,XTERM,"-hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL);
+  }else if(f > 0)
+	{
+		main_pids[index] = f;
+	}
+  
+  //printf("Execed!");
+  
+}
 /*
  * Add a new user
  */
@@ -65,7 +108,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 	 * before adding it. This will help in future name-based search.
 	 */ 
 
-/*	int user_index = -1;
+	int user_index = -1;
 	int i;
 	for(i = 0; i < MAX_USERS; i++)
 	{
@@ -77,20 +120,41 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 	}
 	if(user_index != -1)
 	{
-		users[user_index].status = SLOT_FULL;		
+		users[user_index].status = SLOT_FULL;
+
+		strcpy(users[user_index].name, extract_name(ADD_USER, buf));
+	
 		if(pipe(users[user_index].ptoc) < 0)
 			perror("error setting up user communication");
 
 		if(pipe(users[user_index].ctop) < 0)
 			perror("error setting up user communication");
 
+		int flags = fcntl(users[user_index].ptoc[0], F_GETFL, 0);
+		fcntl(users[user_index].ptoc[0], F_SETFL, flags | O_NONBLOCK);
+
+		int flags2 =  fcntl(users[user_index].ctop[0], F_GETFL, 0);
+		fcntl(users[user_index].ctop[0], F_SETFL, flags2 | O_NONBLOCK);
+
+		char fd_ptocread[20];
+		char fd_ptocwrite[20];
+		char fd_ctopread[20];
+		char fd_ctopwrite[20];
+
+		sprintf(fd_ptocread, "%d", users[user_index].ptoc[0]);
+		sprintf(fd_ptocwrite, "%d", users[user_index].ptoc[1]);
+		sprintf(fd_ctopread, "%d", users[user_index].ctop[0]);
+		sprintf(fd_ctopwrite, "%d", users[user_index].ctop[1]);
+		
+		extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
+
 		//fork and xterm pending
-		if(write(fd, buf, strlen(buf)+1) < 0)
+		if(write(server_fd, buf, strlen(buf)+1) < 0)
 			perror("error adding user");
 	}else
 	{
 		perror("user limit has been reached!");
-	}*/
+	}
 }
 
 /*
@@ -183,21 +247,6 @@ int find_user_index(user_chat_box_t *users, char *name)
 	return user_idx;
 }
 
-/*
- * Utility function.
- * Given a command's input buffer, extract name.
- */
-char *extract_name(int cmd, char *buf)
-{
-	char *s = NULL;
-
-	s = strtok(buf, " ");
-	s = strtok(NULL, " ");
-	if (cmd == P2P)
-		return s;	/* s points to the name as no newline after name in P2P */
-	s = strtok(s, "\n");	/* other commands have newline after name, so remove it*/
-	return s;
-}
 
 /*
  * Send personal message. Print error on the user shell if user not found.
@@ -208,30 +257,7 @@ void send_p2p_msg(int idx, user_chat_box_t *users, char *buf)
 	
 	/***** Insert YOUR code *******/
 }
-//Tests how to exterm 
-//Works and holds. to change to non-holding (will result in window closing as 
-//shell code is incomplete) change "-hold" to "+hold"
-//
-void extermTest(char* fd1, char* fd2, char* fd3, char* fd4){
-  int f;
-  char * result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2);
 
-  strncpy (result, CURR_DIR, (strlen(CURR_DIR)+1));
-  strcat (result, "/");
-  strcat (result, SHELL_PROG);
-  fprintf (stderr,"Result: %s\n", result);
-  if((f = fork()) == -1)
-	{
-		perror("fork failed!");
-		exit(-1);
-	}
-  if(f == 0){
-    execl(XTERM_PATH,XTERM,"-hold","-e", result, "Admin",fd1,fd2,fd3,fd4,(char *)NULL);
-  }
-  if (f > 0){
-    printf("Execed!");
-  }
-}
 
 int main(int argc, char **argv)
 {
@@ -316,8 +342,8 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	server_stuff.ptoc[1] = fd_child[0];
-	server_stuff.ctop[0] = fd_serv[1];
+	server_stuff.ptoc[1] = fd_child[1];
+	server_stuff.ctop[0] = fd_serv[0];
 
 	/* Inside the parent. This will be the most important part of this program. */
 
@@ -336,10 +362,23 @@ int main(int argc, char **argv)
 		numBytes = read(fd_serv[0], buf, MSG_SIZE);
 		if(numBytes != -1 && numBytes != 0)
 		{
-			if(write(fd_child[1], buf, numBytes+1) == -1)
+			int p = parse_command(buf);
+			switch(p)
 			{
-				perror("write failed");
-				exit(-1);
+				case ADD_USER:
+					add_user(users, buf, fd_child[0]);
+					break;
+				default:
+					break;
+			}
+
+			if(p != ADD_USER)
+			{
+				if(write(fd_child[1], buf, numBytes+1) == -1)
+				{
+					perror("write failed");
+					exit(-1);
+				}
 			}
 
 			if(starts_with(buf, EXIT_CMD))
@@ -353,6 +392,30 @@ int main(int argc, char **argv)
 			exit(-1);
 		}
 		
+		int i;
+		for(i = 0; i < MAX_USERS; i++)
+		{
+			if(users[i].status == SLOT_FULL)
+			{
+				int numBytesUser;
+				char bufUser[MSG_SIZE];
+
+				numBytesUser = read(users[i].ctop[0], bufUser, MSG_SIZE);
+				if(numBytesUser != -1 && numBytesUser != 0)
+				{
+					if(write(users[i].ptoc[1], bufUser, numBytesUser+1) == -1)
+					{
+						perror("write failed");
+						exit(-1);
+					}
+
+				}else if(numBytesUser == 0)
+				{
+					perror("read from pipe failed!");
+					exit(-1);
+				}
+			}
+		}
 			/* 
 		 	 * 1. Read the message from server's shell, if any
 		 	 * 2. Parse the command

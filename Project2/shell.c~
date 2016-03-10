@@ -107,7 +107,6 @@ int main(int argc, char **argv)
 			char buf[MSG_SIZE];
 			if(read(fd_child[0], buf, MSG_SIZE) != -1)
 			{
-				
 				if(isServer && starts_with(buf, EXIT_CMD))
 					exit(0);
 				//print_prompt(name);			

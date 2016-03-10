@@ -141,6 +141,7 @@ int main(int argc, char **argv)
 	{
 		usleep(1000);
 		char* line;
+
 		if((line = sh_read_line()) != NULL)
 		{
 			print_prompt(name);
