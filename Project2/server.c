@@ -90,6 +90,7 @@ void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int inde
   }else if(f > 0)
 	{
 		main_pids[index] = f;
+		free(result);
 	}
   
   //printf("Execed!");
@@ -114,6 +115,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 
 	int user_index = -1;
 	int i;
+	
 	for(i = 0; i < MAX_USERS; i++)
 	{
 		if(users[i].status == SLOT_EMPTY)
@@ -128,6 +130,17 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		
 		char* namecpycmd = strdup(buf);
 		strcpy(users[user_index].name, extract_name(ADD_USER, namecpycmd));
+		char *msg = "Adding user ";
+		char *eom = "... \n";
+		char * result; 
+		if((result = malloc(strlen(msg)+strlen(users[user_index].name) + strlen(eom) + 1))== NULL){
+		  perror("ERROR INSUFFICIENT MEMORY\n");
+		  exit(-1);
+		}
+
+		strncpy (result, msg, (strlen(msg)+1));
+		strcat (result, users[user_index].name);
+		strcat (result, eom);
 		free(namecpycmd);
 	
 		if(pipe(users[user_index].ptoc) < 0)
@@ -154,8 +167,9 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		
 		extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
 
-		if(write(server_fd, buf, strlen(buf)+1) < 0)
+		if(write(server_fd, result, strlen(result)+1) < 0)
 			perror("error adding user");
+		free(result);
 
 
 	}else
