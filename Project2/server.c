@@ -276,11 +276,14 @@ int find_user_index(user_chat_box_t *users, char *name)
 /*
  * Send personal message. Print error on the user shell if user not found.
  */
-void send_p2p_msg(int idx, user_chat_box_t *users, char *buf)
+void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, char* sender)
 {
 	/* get the target user by name (hint: call (extract_name() and send message */
+  char* name = extract_name(cmd, buf);
+  int index = find_user_index(users, name);
+  
+  printf ("Buffer: %s Name: %s\n", buf, name);
 	
-	/***** Insert YOUR code *******/
 }
 
 
@@ -394,7 +397,7 @@ int main(int argc, char **argv)
 				case ADD_USER:
 					add_user(users, buf, fd_serv[1]);
 					break;
-				case BROADCAST:
+			        case BROADCAST:
 					broadcast_msg(users, buf, fd_serv[1], "Server");
 					break;
 				default:
@@ -435,7 +438,11 @@ int main(int argc, char **argv)
 					int p = parse_command(bufUser);
 					switch(p)
 					{
-						case BROADCAST:
+					        case P2P:
+						  send_p2p_msg(p, users, bufUser, users[i].name);
+						  break;
+						  
+					        case BROADCAST:
 							broadcast_msg(users, bufUser, fd_serv[1], users[i].name);
 							break;
 						default:
