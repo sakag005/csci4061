@@ -122,11 +122,11 @@ int main(int argc, char **argv)
 				
 				print_prompt(name);
 				//do something
-			}/*else
+			}else if(bytesRead == 0)
 			{
 				perror("error reading in shell!");
 				exit(-1);
-			}*/
+			}
 		}
 	}
 
@@ -153,7 +153,7 @@ int main(int argc, char **argv)
 
 		if((line = sh_read_line()) != NULL)
 		{
-			print_prompt(name);
+			//print_prompt(name);
 			size_t len = strlen(line);
 			
 			if(write(fd_child[1], line, len+1) == -1)

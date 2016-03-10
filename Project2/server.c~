@@ -7,8 +7,7 @@
 #include <sys/types.h>
 #include "util.h"
 
-static server_ctrl_t server_stuff;
-static int main_pids[MAX_USERS];
+static server_ctrl_t srvr;
 
 /*
  * Identify the command used at the shell 
@@ -65,12 +64,16 @@ int list_users(user_chat_box_t *users, int fd)
 }
 
 //Tests how to exterm 
-//Works and holds. to change to non-holding (will result in window closing as 
+//Works and holds. to change to holding (will result in window closing as 
 //shell code is incomplete) change "-hold" to "+hold"
 //
-void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index){
+int extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index){
   int f;
-  char * result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2);
+  char * result; 
+  if((result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2))== NULL){
+    perror("ERROR INSUFFICIENT MEMORY\n");
+    exit(-1);
+  }
 
   strncpy (result, CURR_DIR, (strlen(CURR_DIR)+1));
   strcat (result, "/");
@@ -78,15 +81,21 @@ void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int inde
   //fprintf (stderr,"Result: %s\n", result);
   if((f = fork()) == -1)
 	{
-		perror("fork failed!");
+		perror("fork failed!\n");
 		exit(-1);
 	}
   if(f == 0){
-    execl(XTERM_PATH,XTERM,"-hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL);
+    if(execl(XTERM_PATH,XTERM,"-hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL) == -1)
+	{
+		perror("error execing xterm!");
+		exit(-1);
+	}
   }else if(f > 0)
 	{
-		main_pids[index] = f;
+		free(result);
 	}
+
+	return f;
   
   //printf("Execed!");
   
@@ -110,6 +119,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 
 	int user_index = -1;
 	int i;
+	
 	for(i = 0; i < MAX_USERS; i++)
 	{
 		if(users[i].status == SLOT_EMPTY)
@@ -124,6 +134,17 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		
 		char* namecpycmd = strdup(buf);
 		strcpy(users[user_index].name, extract_name(ADD_USER, namecpycmd));
+		char *msg = "Adding user ";
+		char *eom = "... \n";
+		char * result; 
+		if((result = malloc(strlen(msg)+strlen(users[user_index].name) + strlen(eom) + 1))== NULL){
+		  perror("ERROR INSUFFICIENT MEMORY\n");
+		  exit(-1);
+		}
+
+		strncpy (result, msg, (strlen(msg)+1));
+		strcat (result, users[user_index].name);
+		strcat (result, eom);
 		free(namecpycmd);
 	
 		if(pipe(users[user_index].ptoc) < 0)
@@ -148,10 +169,11 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		sprintf(fd_ctopread, "%d", users[user_index].ctop[0]);
 		sprintf(fd_ctopwrite, "%d", users[user_index].ctop[1]);
 		
-		extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
+		users[user_index].pid = extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
 
-		if(write(server_fd, buf, strlen(buf)+1) < 0)
+		if(write(server_fd, result, strlen(result)+1) < 0)
 			perror("error adding user");
+		free(result);
 
 
 	}else
@@ -331,7 +353,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	main_pids[0] = f;
+	srvr.pid = f;
 	
 	if(close(fd_child[1]) == -1)
 	{
@@ -344,9 +366,11 @@ int main(int argc, char **argv)
 		perror("closing child pipe failed!");
 		exit(-1);
 	}
-
-	server_stuff.ptoc[1] = fd_serv[1];
-	server_stuff.ctop[0] = fd_child[0];
+	
+	srvr.ptoc[0] = fd_serv[0];
+	srvr.ptoc[1] = fd_serv[1];
+	srvr.ctop[0] = fd_child[0];
+	srvr.ctop[1] = fd_child[1];
 
 	/* Inside the parent. This will be the most important part of this program. */
 
@@ -410,8 +434,6 @@ int main(int argc, char **argv)
 				if(numBytesUser != -1 && numBytesUser != 0)
 				{
 					int p = parse_command(bufUser);
-					printf("buf: %s\n", bufUser);
-					printf("pval: %d\n", p);
 					switch(p)
 					{
 						case BROADCAST:

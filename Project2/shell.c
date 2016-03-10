@@ -121,11 +121,11 @@ int main(int argc, char **argv)
 					printf("%s\n", buf);
 				
 				//do something
-			}/*else
+			}else if(bytesRead == 0)
 			{
 				perror("error reading in shell!");
 				exit(-1);
-			}*/
+			}
 		}
 	}
 
