@@ -208,6 +208,30 @@ void send_p2p_msg(int idx, user_chat_box_t *users, char *buf)
 	
 	/***** Insert YOUR code *******/
 }
+//Tests how to exterm 
+//Works and holds. to change to non-holding (will result in window closing as 
+//shell code is incomplete) change "-hold" to "+hold"
+//
+void extermTest(char* fd1, char* fd2, char* fd3, char* fd4){
+  int f;
+  char * result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2);
+
+  strncpy (result, CURR_DIR, (strlen(CURR_DIR)+1));
+  strcat (result, "/");
+  strcat (result, SHELL_PROG);
+  fprintf (stderr,"Result: %s\n", result);
+  if((f = fork()) == -1)
+	{
+		perror("fork failed!");
+		exit(-1);
+	}
+  if(f == 0){
+    execl(XTERM_PATH,XTERM,"-hold","-e", result, "Admin",fd1,fd2,fd3,fd4,(char *)NULL);
+  }
+  if (f > 0){
+    printf("Execed!");
+  }
+}
 
 int main(int argc, char **argv)
 {
@@ -252,9 +276,9 @@ int main(int argc, char **argv)
 	sprintf(fd_servwrite, "%d", fd_serv[1]);
 	sprintf(fd_childread, "%d", fd_child[0]);
 	sprintf(fd_childwrite, "%d", fd_child[1]);
+  /*Uncomment below line to use ExtermTest, to see how Exterm works*/
+	//extermTest(fd_servread, fd_servwrite, fd_childread, fd_childwrite);
 
-	
-	
 	/* Fork the server shell */
 
 		/* 
