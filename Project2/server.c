@@ -121,8 +121,10 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 	if(user_index != -1)
 	{
 		users[user_index].status = SLOT_FULL;
-
-		strcpy(users[user_index].name, extract_name(ADD_USER, buf));
+		
+		char* namecpycmd = strdup(buf);
+		strcpy(users[user_index].name, extract_name(ADD_USER, namecpycmd));
+		free(namecpycmd);
 	
 		if(pipe(users[user_index].ptoc) < 0)
 			perror("error setting up user communication");
@@ -150,6 +152,8 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 
 		if(write(server_fd, buf, strlen(buf)+1) < 0)
 			perror("error adding user");
+
+
 	}else
 	{
 		perror("user limit has been reached!");
@@ -162,7 +166,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 {
 	int i;
-	const char *msg = "Broadcasting...", *s;
+	const char *msg = "Broadcasting...\n", *s;
 	char text[MSG_SIZE];
 
 	/* Notify on server shell */
@@ -365,20 +369,23 @@ int main(int argc, char **argv)
 			switch(p)
 			{
 				case ADD_USER:
-					add_user(users, buf, fd_child[1]);
+					add_user(users, buf, fd_serv[1]);
+					break;
+				case BROADCAST:
+					broadcast_msg(users, buf, fd_serv[1], "Server");
 					break;
 				default:
 					break;
 			}
 
-			if(p != ADD_USER)
+			/*if(p != ADD_USER)
 			{
 				if(write(fd_serv[1], buf, numBytes+1) == -1)
 				{
 					perror("write failed");
 					exit(-1);
 				}
-			}
+			}*/
 
 			if(starts_with(buf, EXIT_CMD))
 				break;
@@ -402,8 +409,7 @@ int main(int argc, char **argv)
 				numBytesUser = read(users[i].ctop[0], bufUser, MSG_SIZE);
 				if(numBytesUser != -1 && numBytesUser != 0)
 				{
-					
-					int p = parse_command(buf);
+					int p = parse_command(bufUser);
 					switch(p)
 					{
 						case BROADCAST:
