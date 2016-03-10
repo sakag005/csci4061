@@ -85,7 +85,7 @@ int extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index
 		exit(-1);
 	}
   if(f == 0){
-    if(execl(XTERM_PATH,XTERM,"-hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL) == -1)
+    if(execl(XTERM_PATH,XTERM,"+hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL) == -1)
 	{
 		perror("error execing xterm!");
 		exit(-1);

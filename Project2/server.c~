@@ -446,7 +446,7 @@ int main(int argc, char **argv)
 						case CHILD_PID:
 						{
 							char* chpid = extract_name(CHILD_PID, bufUser);
-							srvr.child_pid = atoi(chpid);
+							users[i].child_pid = atoi(chpid);
 						}break;
 						default:
 							break;
