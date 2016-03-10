@@ -75,7 +75,7 @@ void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int inde
   strncpy (result, CURR_DIR, (strlen(CURR_DIR)+1));
   strcat (result, "/");
   strcat (result, SHELL_PROG);
-  fprintf (stderr,"Result: %s\n", result);
+  //fprintf (stderr,"Result: %s\n", result);
   if((f = fork()) == -1)
 	{
 		perror("fork failed!");
@@ -148,7 +148,6 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		
 		extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
 
-		//fork and xterm pending
 		if(write(server_fd, buf, strlen(buf)+1) < 0)
 			perror("error adding user");
 	}else
@@ -330,20 +329,20 @@ int main(int argc, char **argv)
 
 	main_pids[0] = f;
 	
-	if(close(fd_serv[1]) == -1)
+	if(close(fd_child[1]) == -1)
 	{
 		perror("closing server pipe failed!");
 		exit(-1);
 	}
 
-	if(close(fd_child[0]) == -1)
+	if(close(fd_serv[0]) == -1)
 	{
 		perror("closing child pipe failed!");
 		exit(-1);
 	}
 
-	server_stuff.ptoc[1] = fd_child[1];
-	server_stuff.ctop[0] = fd_serv[0];
+	server_stuff.ptoc[1] = fd_serv[1];
+	server_stuff.ctop[0] = fd_child[0];
 
 	/* Inside the parent. This will be the most important part of this program. */
 
@@ -359,14 +358,14 @@ int main(int argc, char **argv)
 		int numBytes;
 		char buf[MSG_SIZE];
 
-		numBytes = read(fd_serv[0], buf, MSG_SIZE);
+		numBytes = read(fd_child[0], buf, MSG_SIZE);
 		if(numBytes != -1 && numBytes != 0)
 		{
 			int p = parse_command(buf);
 			switch(p)
 			{
 				case ADD_USER:
-					add_user(users, buf, fd_child[0]);
+					add_user(users, buf, fd_child[1]);
 					break;
 				default:
 					break;
@@ -374,7 +373,7 @@ int main(int argc, char **argv)
 
 			if(p != ADD_USER)
 			{
-				if(write(fd_child[1], buf, numBytes+1) == -1)
+				if(write(fd_serv[1], buf, numBytes+1) == -1)
 				{
 					perror("write failed");
 					exit(-1);
@@ -403,11 +402,22 @@ int main(int argc, char **argv)
 				numBytesUser = read(users[i].ctop[0], bufUser, MSG_SIZE);
 				if(numBytesUser != -1 && numBytesUser != 0)
 				{
-					if(write(users[i].ptoc[1], bufUser, numBytesUser+1) == -1)
+					
+					int p = parse_command(buf);
+					switch(p)
+					{
+						case BROADCAST:
+							broadcast_msg(users, bufUser, fd_serv[1], users[i].name);
+							break;
+						default:
+							break;
+					}
+					
+					/*if(write(users[i].ptoc[1], bufUser, numBytesUser+1) == -1)
 					{
 						perror("write failed");
 						exit(-1);
-					}
+					}*/
 
 				}else if(numBytesUser == 0)
 				{
@@ -459,13 +469,13 @@ int main(int argc, char **argv)
 	}	/* while loop ends when server shell sees the \exit command */
 	
 	cleanup_users(users);
-	if(close(fd_serv[0]) == -1)
+	if(close(fd_serv[1]) == -1)
 	{
 		perror("closing server pipe failed!");
 		exit(-1);
 	}
 
-	if(close(fd_child[1]) == -1)
+	if(close(fd_child[0]) == -1)
 	{
 		perror("closing child pipe failed!");
 		exit(-1);

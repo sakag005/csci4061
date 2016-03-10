@@ -72,7 +72,7 @@ int main(int argc, char **argv)
 
 	isServer = (argv[6][0] == '1')? 1 : 0;
 
-	if(close(fd_serv[0]) == -1)
+	if(close(fd_serv[1]) == -1)
 	{
 		perror("close write pipe failed!");
 		exit(-1);
@@ -105,9 +105,10 @@ int main(int argc, char **argv)
 		{
 			usleep(1000);
 			char buf[MSG_SIZE];
-			if(read(fd_child[0], buf, MSG_SIZE) != -1)
+			int bytesRead = read(fd_serv[0], buf, MSG_SIZE);
+			if(bytesRead != -1)
 			{
-				if(isServer && starts_with(buf, EXIT_CMD))
+				if(starts_with(buf, EXIT_CMD))
 					exit(0);
 				//print_prompt(name);			
 				printf("%s", buf);
@@ -121,7 +122,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	if(close(fd_child[1]) == -1)
+	if(close(fd_serv[0]) == -1)
 	{
 		perror("close child pipe failed!");
 		exit(-1);
@@ -146,7 +147,7 @@ int main(int argc, char **argv)
 		{
 			print_prompt(name);
 			size_t len = strlen(line);
-			if(write(fd_serv[1], line, len+1) == -1)
+			if(write(fd_child[1], line, len+1) == -1)
 			{
 				perror("write failed!");
 				exit(-1);
