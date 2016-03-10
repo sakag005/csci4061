@@ -7,8 +7,7 @@
 #include <sys/types.h>
 #include "util.h"
 
-static server_ctrl_t server_stuff;
-static int main_pids[MAX_USERS];
+static server_ctrl_t srvr;
 
 /*
  * Identify the command used at the shell 
@@ -68,7 +67,7 @@ int list_users(user_chat_box_t *users, int fd)
 //Works and holds. to change to holding (will result in window closing as 
 //shell code is incomplete) change "-hold" to "+hold"
 //
-void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index){
+int extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int index){
   int f;
   char * result; 
   if((result = malloc(strlen(CURR_DIR)+strlen(SHELL_PROG) + 2))== NULL){
@@ -86,12 +85,17 @@ void extermTest(char* name, char* fd1, char* fd2, char* fd3, char* fd4, int inde
 		exit(-1);
 	}
   if(f == 0){
-    execl(XTERM_PATH,XTERM,"-hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL);
+    if(execl(XTERM_PATH,XTERM,"+hold","-e", result, name, fd1, fd2, fd3, fd4, "0",(char *)NULL) == -1)
+	{
+		perror("error execing xterm!");
+		exit(-1);
+	}
   }else if(f > 0)
 	{
-		main_pids[index] = f;
 		free(result);
 	}
+
+	return f;
   
   //printf("Execed!");
   
@@ -165,7 +169,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		sprintf(fd_ctopread, "%d", users[user_index].ctop[0]);
 		sprintf(fd_ctopwrite, "%d", users[user_index].ctop[1]);
 		
-		extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
+		users[user_index].pid = extermTest(users[user_index].name, fd_ptocread, fd_ptocwrite, fd_ctopread, fd_ctopwrite, user_index);
 
 		if(write(server_fd, result, strlen(result)+1) < 0)
 			perror("error adding user");
@@ -290,7 +294,6 @@ int main(int argc, char **argv)
 	for(i = 0; i < MAX_USERS; i++)
 	{
 		users[i].status = SLOT_EMPTY;
-		main_pids[i] = 0;
 	}
 	
 	/* open non-blocking bi-directional pipes for communication with server shell */
@@ -349,7 +352,7 @@ int main(int argc, char **argv)
 		}
 	}
 
-	main_pids[0] = f;
+	srvr.pid = f;
 	
 	if(close(fd_child[1]) == -1)
 	{
@@ -362,9 +365,11 @@ int main(int argc, char **argv)
 		perror("closing child pipe failed!");
 		exit(-1);
 	}
-
-	server_stuff.ptoc[1] = fd_serv[1];
-	server_stuff.ctop[0] = fd_child[0];
+	
+	srvr.ptoc[0] = fd_serv[0];
+	srvr.ptoc[1] = fd_serv[1];
+	srvr.ctop[0] = fd_child[0];
+	srvr.ctop[1] = fd_child[1];
 
 	/* Inside the parent. This will be the most important part of this program. */
 
@@ -392,6 +397,11 @@ int main(int argc, char **argv)
 				case BROADCAST:
 					broadcast_msg(users, buf, fd_serv[1], "Server");
 					break;
+				case CHILD_PID:
+				{
+					char* chpid = extract_name(CHILD_PID, buf);
+					srvr.child_pid = atoi(chpid);
+				}break;
 				default:
 					break;
 			}
@@ -433,6 +443,11 @@ int main(int argc, char **argv)
 						case BROADCAST:
 							broadcast_msg(users, bufUser, fd_serv[1], users[i].name);
 							break;
+						case CHILD_PID:
+						{
+							char* chpid = extract_name(CHILD_PID, bufUser);
+							users[i].child_pid = atoi(chpid);
+						}break;
 						default:
 							break;
 					}
