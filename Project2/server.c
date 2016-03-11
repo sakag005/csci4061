@@ -315,14 +315,24 @@ int find_user_index(user_chat_box_t *users, char *name)
 /*
  * Send personal message. Print error on the user shell if user not found.
  */
-void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, char* sender)
+void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, int senderIndex)
 {
 	/* get the target user by name (hint: call (extract_name() and send message */
   char* bufCopy= strdup(buf);
   char* name = extract_name(cmd, buf);
-  int index = find_user_index(users, name);
   char* msg = strstr(bufCopy,name);
   msg = msg + strlen(name)+1;
+  char text[MSG_SIZE];
+  int index = find_user_index(users, name);
+  if (index == -1){
+    sprintf(text, "User %s does not exist", name);
+    if (write(users[senderIndex].ptoc[1],text,strlen(text) +1) < 0)
+      perror("write to shell failed");
+  }else{
+    sprintf(text,"%s : %s",users[senderIndex].name,msg);
+    if (write(users[index].ptoc[1],text,strlen(text) + 1) < 0)
+      perror("write to shell failed");
+  }
   printf ("Buffer: %s Name: %s CMD: %d\n", msg, name, cmd);
   free(bufCopy);
 }
@@ -485,7 +495,7 @@ int main(int argc, char **argv)
 					switch(p)
 					{
 					        case P2P:
-						  send_p2p_msg(p, users, bufUser, users[i].name);
+						  send_p2p_msg(p, users, bufUser, i);
 						  break;
 						  
 					        case BROADCAST:
