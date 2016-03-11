@@ -53,15 +53,34 @@ char *extract_name(int cmd, char *buf)
 /*
  * List the existing users on the server shell
  */
-int list_users(user_chat_box_t *users, int fd)
+/*
+int list_users(user_chat_box_t *users, int i)
 {
-	/* 
-	 * Construct a list of user names
-	 * Don't forget to send the list to the requester!
-	 */
-	 
-	 /***** Insert YOUR code *******/
-}
+	int q;
+	int toMalloc = 0;
+	char* n;
+	for(q=0; q < MAX_USERS; q++){
+		toMalloc += strlen(users[q].name);
+		toMalloc += 2;
+	}
+	char* list;
+	list = (char*) malloc(toMalloc+1);
+	for(q=0;q<MAX_USERS;q++){
+		if(users[q].status != SLOT_EMPTY){
+			n = malloc(strlen(users[q].name));
+			strncpy(n,users[q].name,(strlen(users[q].name+1)));
+			strncat(list,"\n",1);
+			strncat(list,n,strlen(n));
+			free(n);
+			}
+	}
+	if(write(users[i].ptoc[1],list,strlen(list)+1) < 0){
+		perror("write failed");
+		exit(-1);
+	}
+	free(list);
+	return 0;
+}*/
 
 //Tests how to exterm 
 //Works and holds. to change to holding (will result in window closing as 
@@ -445,6 +464,33 @@ int main(int argc, char **argv)
 			int p = parse_command(buf);
 			switch(p)
 			{
+				case LIST_USERS:
+					{
+					int q;
+					int toMalloc = 0;
+					char* n;
+					for(q = 0; q < MAX_USERS; q++){
+						toMalloc += strlen(users[q].name);						
+							toMalloc += 2; 
+						}
+					char* list;
+					list = (char*) malloc(toMalloc+1);							
+					for(q=0;q<MAX_USERS;q++){
+							if(users[q].status != SLOT_EMPTY){
+							n = malloc(strlen(users[q].name));
+							strncpy(n,users[q].name,(strlen(users[q].name)+1));
+							strncat(list,"\n",1);
+							strncat(list,n,strlen(n));
+							free(n);								}
+						}
+					if(write(fd_serv[1],list,strlen(list) + 1) < 0)
+						perror("Printing userlist to server shell");
+					/*if(write(users[i].ptoc[1],list,strlen(list) + 1) <0){
+						perror("write failed");
+						exit(-1);
+					}*/
+					free(list);
+					}break;
 				case ADD_USER:
 					add_user(users, buf, fd_serv[1]);
 					break;
@@ -494,7 +540,36 @@ int main(int argc, char **argv)
 					int p = parse_command(bufUser);
 					switch(p)
 					{
-					        case P2P:
+					      case LIST_USERS:
+							{
+							/*int asdf;
+							asdf = list_users(users, i);*/
+							int q;
+							int toMalloc = 0;
+							char* n;
+							for(q = 0; q < MAX_USERS; q++){
+								toMalloc += strlen(users[q].name);
+								toMalloc += 2; 
+							}
+							char* list;
+							//list = (char*) malloc(MAX_USERS * MSG_SIZE);
+							list = (char*) malloc(toMalloc+1);
+							for(q=0;q<MAX_USERS;q++){
+								if(users[q].status != SLOT_EMPTY){
+								n = malloc(strlen(users[q].name));
+								strncpy(n,users[q].name,(strlen(users[q].name)+1));
+								strncat(list,"\n",1);
+								strncat(list,n,strlen(n));
+								free(n);
+								}
+							}
+							if(write(users[i].ptoc[1],list,strlen(list) + 1) <0){
+								perror("write failed");
+								exit(-1);
+							}
+							free(list);
+							}break;
+						case P2P:
 						  send_p2p_msg(p, users, bufUser, i);
 						  break;
 						  
