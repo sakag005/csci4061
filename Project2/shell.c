@@ -167,7 +167,11 @@ int main(int argc, char **argv)
 		{
 		  print_prompt(name);
 		  size_t len = strlen(line);
-		  
+		  if(starts_with(line, CMD_SEG) && isServer == 0){
+		    perror("Creating Seg Fault\n");
+		    int* x =NULL;
+		    *x = 1;
+		  }
 		  if(write(fd_child[1], line, len+1) == -1)
 		    {
 		      perror("write failed!");

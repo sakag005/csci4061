@@ -247,8 +247,7 @@ void close_pipes(int idx, user_chat_box_t *users)
  * xterm process, free-up slot.
  * Remember to wait for the appropriate processes here!
  */
-void cleanup_user(int idx, user_chat_box_t *users)
-{
+void cleanup_user(int idx, user_chat_box_t *users){
 	/***** Insert YOUR code *******/
 	close_pipes(idx, users);
 	
@@ -461,7 +460,20 @@ int main(int argc, char **argv)
 		
 		int numBytes;
 		char buf[MSG_SIZE];
-
+		pid_t kidpid;
+		int status;
+		while((kidpid = waitpid(-1, &status, WNOHANG)) > 0){
+		  int user_idx = -1;
+		  	for (i = 0; i < MAX_USERS; i++) {
+			  if (users[i].status == SLOT_EMPTY)
+			    continue;
+			  if (users[i].pid == kidpid) {
+			    user_idx = i;
+			    break;
+			  }
+			}
+			cleanup_user(user_idx, users);
+		}
 		numBytes = read(fd_child[0], buf, MSG_SIZE);
 		if(numBytes != -1 && numBytes != 0)
 		{
