@@ -105,7 +105,7 @@ int main(int argc, char **argv)
 			usleep(1000);
 			char buf[MSG_SIZE];
 			int bytesRead = read(fd_serv[0], buf, MSG_SIZE);
-			char *bufCopy = strdup(buf);
+			
 			if(bytesRead != -1 && bytesRead != 0)
 			{
 				if(starts_with(buf, EXIT_CMD))
@@ -118,16 +118,16 @@ int main(int argc, char **argv)
 					exit(0);
 				}
 			
-				if(!is_empty(buf))	
+				if(!is_empty(buf)){	
 					printf("%s\n", buf);
-				
+				}
 				//do something
 			}else if(bytesRead == 0)
 			{
 				perror("error reading in shell!");
 				exit(-1);
 			}
-			free(bufCopy);
+			
 		}
 	}
 

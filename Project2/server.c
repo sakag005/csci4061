@@ -196,7 +196,11 @@ int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 		perror("writing to server shell");
 	
 	/* Send the message to all user shells */
-	s = strtok(buf, "\n");
+	if(strlen(buf) == 1){
+	  s = " ";
+	}else{
+	  s = strtok(buf, "\n");
+	}
 	sprintf(text, "%s : %s", sender, s);
 	for (i = 0; i < MAX_USERS; i++) {
 		if (users[i].status == SLOT_EMPTY)
