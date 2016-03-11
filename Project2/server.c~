@@ -442,6 +442,12 @@ int main(int argc, char **argv)
 					char* chpid = extract_name(CHILD_PID, buf);
 					srvr.child_pid = atoi(chpid);
 				}break;
+				case KICK:
+				{
+					char* uname = extract_name(KICK, buf);
+					int uindx = find_user_index(users, uname);
+					cleanup_user(uindx, users);
+				}
 				default:
 					break;
 			}
