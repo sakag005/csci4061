@@ -135,7 +135,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 		char* namecpycmd = strdup(buf);
 		strcpy(users[user_index].name, extract_name(ADD_USER, namecpycmd));
 		char *msg = "Adding user ";
-		char *eom = "... \n";
+		char *eom = "...";
 		char * result; 
 		if((result = malloc(strlen(msg)+strlen(users[user_index].name) + strlen(eom) + 1))== NULL){
 		  perror("ERROR INSUFFICIENT MEMORY\n");
@@ -188,7 +188,7 @@ int add_user(user_chat_box_t *users, char *buf, int server_fd)
 int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 {
 	int i;
-	const char *msg = "Broadcasting...\n", *s;
+	const char *msg = "Broadcasting...", *s;
 	char text[MSG_SIZE];
 
 	/* Notify on server shell */
@@ -212,6 +212,11 @@ int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 void close_pipes(int idx, user_chat_box_t *users)
 {
 	/***** Insert YOUR code *******/
+	if(close(users[idx].ptoc[1]) == -1)
+		perror("error closing user pipe!");
+
+	if(close(users[idx].ctop[0]) == -1)
+		perror("error closing user pipe!");
 }
 
 /*
@@ -222,18 +227,14 @@ void close_pipes(int idx, user_chat_box_t *users)
 void cleanup_user(int idx, user_chat_box_t *users)
 {
 	/***** Insert YOUR code *******/
-	if(close(users[idx].ptoc[1]) == -1)
-		perror("error closing user pipe!");
-
-	if(close(users[idx].ctop[0]) == -1)
-		perror("error closing user pipe!");
-
-	if((kill(users[idx].pid, 0) == -1)  && errno != ESRCH)
+	close_pipes(idx, users);
+	
+	if((kill(users[idx].pid, 9) == -1)  && errno != ESRCH)
 	{
 		perror("error ending user shell process!");
 	}
 
-	if((kill(users[idx].child_pid, 0) == -1) && errno != ESRCH)
+	if((kill(users[idx].child_pid, 9) == -1) && errno != ESRCH)
 	{
 		perror("error ending user shell process!");
 	}
@@ -269,21 +270,19 @@ void cleanup_server(server_ctrl_t server_ctrl)
 	if(close(server_ctrl.ptoc[1]) == -1)
 	{
 		perror("closing server pipe failed!");
-		exit(-1);
 	}
 
 	if(close(server_ctrl.ctop[0]) == -1)
 	{
 		perror("closing child pipe failed!");
-		exit(-1);
 	}
 
-	if((kill(server_ctrl.pid, 0) == -1)  && errno != ESRCH)
+	if((kill(server_ctrl.pid, 9) == -1)  && errno != ESRCH)
 	{
 		perror("error ending server shell process!");
 	}
 
-	if((kill(server_ctrl.child_pid, 0) == -1) && errno != ESRCH)
+	if((kill(server_ctrl.child_pid, 9) == -1) && errno != ESRCH)
 	{
 		perror("error ending server shell process!");
 	}
