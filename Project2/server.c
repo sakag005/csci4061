@@ -215,7 +215,11 @@ int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 		perror("writing to server shell");
 	
 	/* Send the message to all user shells */
-	s = strtok(buf, "\n");
+	if(strlen(buf) == 1){
+	  s = " ";
+	}else{
+	  s = strtok(buf, "\n");
+	}
 	sprintf(text, "%s : %s", sender, s);
 	for (i = 0; i < MAX_USERS; i++) {
 		if (users[i].status == SLOT_EMPTY)
@@ -231,6 +235,11 @@ int broadcast_msg(user_chat_box_t *users, char *buf, int fd, char *sender)
 void close_pipes(int idx, user_chat_box_t *users)
 {
 	/***** Insert YOUR code *******/
+	if(close(users[idx].ptoc[1]) == -1)
+		perror("error closing user pipe!");
+
+	if(close(users[idx].ctop[0]) == -1)
+		perror("error closing user pipe!");
 }
 
 /*
@@ -241,18 +250,14 @@ void close_pipes(int idx, user_chat_box_t *users)
 void cleanup_user(int idx, user_chat_box_t *users)
 {
 	/***** Insert YOUR code *******/
-	if(close(users[idx].ptoc[1]) == -1)
-		perror("error closing user pipe!");
-
-	if(close(users[idx].ctop[0]) == -1)
-		perror("error closing user pipe!");
-
-	if((kill(users[idx].pid, 0) == -1)  && errno != ESRCH)
+	close_pipes(idx, users);
+	
+	if((kill(users[idx].pid, 9) == -1)  && errno != ESRCH)
 	{
 		perror("error ending user shell process!");
 	}
 
-	if((kill(users[idx].child_pid, 0) == -1) && errno != ESRCH)
+	if((kill(users[idx].child_pid, 9) == -1) && errno != ESRCH)
 	{
 		perror("error ending user shell process!");
 	}
@@ -295,12 +300,12 @@ void cleanup_server(server_ctrl_t server_ctrl)
 		perror("closing child pipe failed!");
 	}
 
-	if((kill(server_ctrl.pid, 0) == -1)  && errno != ESRCH)
+	if((kill(server_ctrl.pid, 9) == -1)  && errno != ESRCH)
 	{
 		perror("error ending server shell process!");
 	}
 
-	if((kill(server_ctrl.child_pid, 0) == -1) && errno != ESRCH)
+	if((kill(server_ctrl.child_pid, 9) == -1) && errno != ESRCH)
 	{
 		perror("error ending server shell process!");
 	}
@@ -352,7 +357,6 @@ void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, int senderIndex)
     if (write(users[index].ptoc[1],text,strlen(text) + 1) < 0)
       perror("write to shell failed");
   }
-  printf ("Buffer: %s Name: %s CMD: %d\n", msg, name, cmd);
   free(bufCopy);
 }
 
@@ -501,6 +505,12 @@ int main(int argc, char **argv)
 				{
 					char* chpid = extract_name(CHILD_PID, buf);
 					srvr.child_pid = atoi(chpid);
+				}break;
+				case KICK:
+				{
+					char* uname = extract_name(KICK, buf);
+					int uindx = find_user_index(users, uname);
+					cleanup_user(uindx, users);
 				}break;
 				default:
 					break;

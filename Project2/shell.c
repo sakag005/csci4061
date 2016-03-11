@@ -21,13 +21,12 @@ char *sh_read_line(void)
 /*
  * Do stuff with the shell input here.
  */
-int sh_handle_input(char *line, int fd_toserver)
+int sh_handle_input(char *line, int fd_toserver, int server)
 {
 	
 	/***** Insert YOUR code *******/
 	
  	/* Check for \seg command and create segfault */
-	
 	/* Write message to server for processing */
 	return 0;
 }
@@ -106,6 +105,7 @@ int main(int argc, char **argv)
 			usleep(1000);
 			char buf[MSG_SIZE];
 			int bytesRead = read(fd_serv[0], buf, MSG_SIZE);
+			
 			if(bytesRead != -1 && bytesRead != 0)
 			{
 				if(starts_with(buf, EXIT_CMD))
@@ -117,15 +117,17 @@ int main(int argc, char **argv)
 					}
 					exit(0);
 				}
-				if(!is_empty(buf))	
+			
+				if(!is_empty(buf)){	
 					printf("%s\n", buf);
-				
+				}
 				//do something
 			}else if(bytesRead == 0)
 			{
 				perror("error reading in shell!");
 				exit(-1);
 			}
+			
 		}
 	}
 
@@ -144,43 +146,44 @@ int main(int argc, char **argv)
 	 * Send the child's pid to the server for later cleanup
 	 * Start the main shell loop
 	 */
-	char childPID[20];
+	if(f >0){
+	  char childPID[20];
 
-	sprintf(childPID, "%s %d", CMD_CHILD_PID, f);
+	  sprintf(childPID, "%s %d", CMD_CHILD_PID, f);
 
-	if(write(fd_child[1], childPID, strlen(childPID)+1) == -1)
-	{
-		perror("write failed!");
-		exit(-1);
-	}
+	  if(write(fd_child[1], childPID, strlen(childPID)+1) == -1)
+	    {
+	      perror("write failed!");
+	      exit(-1);
+	    }
 	
-	print_prompt(name);
-	while(1)
-	{
-		usleep(1000);
-		char* line;
-
-		if((line = sh_read_line()) != NULL)
+	  print_prompt(name);
+	  while(1)
+	    {
+	      usleep(1000);
+	      char* line;
+	      
+	      if((line = sh_read_line()) != NULL)
 		{
-			print_prompt(name);
-			size_t len = strlen(line);
-			
-			if(write(fd_child[1], line, len+1) == -1)
-			{
-				perror("write failed!");
-				exit(-1);
-			}
-			if(starts_with(line, EXIT_CMD))
-				break;
+		  print_prompt(name);
+		  size_t len = strlen(line);
+		  
+		  if(write(fd_child[1], line, len+1) == -1)
+		    {
+		      perror("write failed!");
+		      exit(-1);
+		    }
+		  if(starts_with(line, EXIT_CMD))
+		    break;
 		}
+	    }
+	  
+	  if(close(fd_child[1]) == -1)
+	    {
+	      perror("close child pipe failed!");
+	      exit(-1);
+	    }
 	}
-
-	if(close(fd_child[1]) == -1)
-	{
-		perror("close child pipe failed!");
-		exit(-1);
-	}
-
 	return 0;
 
 }
