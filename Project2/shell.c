@@ -117,7 +117,7 @@ int main(int argc, char **argv)
 					}
 					exit(0);
 				}
-			}
+			
 				if(!is_empty(buf))	
 					printf("%s\n", buf);
 				
