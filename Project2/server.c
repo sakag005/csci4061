@@ -333,7 +333,6 @@ void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, int senderIndex)
     if (write(users[index].ptoc[1],text,strlen(text) + 1) < 0)
       perror("write to shell failed");
   }
-  printf ("Buffer: %s Name: %s CMD: %d\n", msg, name, cmd);
   free(bufCopy);
 }
 
