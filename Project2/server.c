@@ -316,11 +316,25 @@ int find_user_index(user_chat_box_t *users, char *name)
 /*
  * Send personal message. Print error on the user shell if user not found.
  */
-void send_p2p_msg(int idx, user_chat_box_t *users, char *buf)
+void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, int senderIndex)
 {
 	/* get the target user by name (hint: call (extract_name() and send message */
-	
-	/***** Insert YOUR code *******/
+  char* bufCopy= strdup(buf);
+  char* name = extract_name(cmd, buf);
+  char* msg = strstr(bufCopy,name);
+  msg = msg + strlen(name)+1;
+  char text[MSG_SIZE];
+  int index = find_user_index(users, name);
+  if (index == -1){
+    sprintf(text, "User %s does not exist", name);
+    if (write(users[senderIndex].ptoc[1],text,strlen(text) +1) < 0)
+      perror("write to shell failed");
+  }else{
+    sprintf(text,"%s : %s",users[senderIndex].name,msg);
+    if (write(users[index].ptoc[1],text,strlen(text) + 1) < 0)
+      perror("write to shell failed");
+  }
+  free(bufCopy);
 }
 
 
@@ -434,7 +448,7 @@ int main(int argc, char **argv)
 				case ADD_USER:
 					add_user(users, buf, fd_serv[1]);
 					break;
-				case BROADCAST:
+			        case BROADCAST:
 					broadcast_msg(users, buf, fd_serv[1], "Server");
 					break;
 				case CHILD_PID:
@@ -486,7 +500,11 @@ int main(int argc, char **argv)
 					int p = parse_command(bufUser);
 					switch(p)
 					{
-						case BROADCAST:
+					        case P2P:
+						  send_p2p_msg(p, users, bufUser, i);
+						  break;
+						  
+					        case BROADCAST:
 							broadcast_msg(users, bufUser, fd_serv[1], users[i].name);
 							break;
 						case CHILD_PID:
