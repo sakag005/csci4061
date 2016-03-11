@@ -467,12 +467,12 @@ int main(int argc, char **argv)
 		  	for (i = 0; i < MAX_USERS; i++) {
 			  if (users[i].status == SLOT_EMPTY)
 			    continue;
-			  if (users[i].pid == kidpid) {
+			  if ((users[i].pid == kidpid)) {
 			    user_idx = i;
+				cleanup_user(user_idx, users);
 			    break;
 			  }
 			}
-			cleanup_user(user_idx, users);
 		}
 		numBytes = read(fd_child[0], buf, MSG_SIZE);
 		if(numBytes != -1 && numBytes != 0)
@@ -655,14 +655,23 @@ int main(int argc, char **argv)
 		 	 * 			BROADCAST
 		 	 *
 		 	 * 		3. You may use the failure of pipe read command to check if the 
-		 	 * 		user chat windows has been closed. (Remember waitpid with WNOHANG 
+		 	 * 		user chat windows has been closed. (Remember waitpid with WNOHmeANG 
 		 	 * 		from recitations?)
 		 	 * 		Cleanup user if the window is indeed closed.
 		 	 */
 
 	}	/* while loop ends when server shell sees the \exit command */
 	
-	cleanup_users(users);
+	int num_users = 0;
+	int c;
+	for(c = 0; c < MAX_USERS; c++){
+		if(users[c].status != SLOT_EMPTY){
+			num_users++;
+			break;
+		}
+	}/*
+	if(num_users > 0)*/
+		cleanup_users(users);
 	cleanup_server(srvr);
 
 	return 0;
