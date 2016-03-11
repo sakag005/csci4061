@@ -318,11 +318,13 @@ int find_user_index(user_chat_box_t *users, char *name)
 void send_p2p_msg(int cmd,  user_chat_box_t *users, char *buf, char* sender)
 {
 	/* get the target user by name (hint: call (extract_name() and send message */
+  char* bufCopy= strdup(buf);
   char* name = extract_name(cmd, buf);
   int index = find_user_index(users, name);
-  
-  printf ("Buffer: %s Name: %s\n", buf, name);
-	
+  char* msg = strstr(bufCopy,name);
+  msg = msg + strlen(name)+1;
+  printf ("Buffer: %s Name: %s CMD: %d\n", msg, name, cmd);
+  free(bufCopy);
 }
 
 
