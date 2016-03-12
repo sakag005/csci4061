@@ -1,0 +1,53 @@
+/* CSci4061 S2016 Assignment 2
+ * section: 6 (for labs)
+ * date: 03/11/16
+ * William Rurik, Michael Jacobson, Peter Sakaguchi (for partner(s))
+ * id: 4618256, 4377605, 4620018 */
+
+Purpose:
+	Our program implements a multi-process chat app, including a command-line based 
+	interface for a server administrator and the functionality to maintain up to
+	10 users who can communicate amongst each other.
+
+How to Compile:
+	First run "make clean" and then "make" in the command line to compile an executable
+	called server which can then be run with the command "./server".
+
+How to use Program:
+	To run the program, first compile it as described above, and then run it with the 
+	aforementioned "./server" command. This will create a new instance of the multi-
+	process chat app, and will initially display a Server shell in your current
+	terminal. The following functions can be called from the Server and User shells:
+
+	Server:
+	\add [username] - creates a new user chat window with the given [username]
+	
+	\list - outputs to the server shell a list of all currently active users
+	
+	\kick [username] - terminates the session of [username]. will do nothing if the 
+	specified user does not exit
+
+	[any other message] - broadcasts whatever is typed to all currently active users
+
+	\exit - exits all user sessions and then closes the server shell
+
+	User:
+	\p2p [username] [message] - sends the desired [message] only to the specified 
+	[username]
+
+	\list - outputs only to the requesting user a list of all currently active users
+
+	\exit - closes the current user's session
+
+	\seg - creates a segfault, closing the current user's session (and causing the server
+	to clean up the user)
+
+	\[any other message] - broadcasts whatever is typed to all currently active users
+ 
+Assumptions:
+	None beyond the description of the project given in the assignment sheet.
+
+Error Handling:
+	Any unforeseen errors (such as malloc not properly allocating memory) should call 
+	perror with a description of the error, and then exit with a return value of -1.
+

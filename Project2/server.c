@@ -54,7 +54,7 @@ char *extract_name(int cmd, char *buf)
  * List the existing users on the server shell
  */
 /*
-int list_users(user_chat_box_t *users, int i)
+int list_users(user_chat_box_t *users, int i, int fd)
 {
 	int q;
 	int toMalloc = 0;
@@ -74,14 +74,14 @@ int list_users(user_chat_box_t *users, int i)
 			free(n);
 			}
 	}
-	if(write(users[i].ptoc[1],list,strlen(list)+1) < 0){
+	if(write(fd,list,strlen(list)+1) < 0){
 		perror("write failed");
 		exit(-1);
 	}
 	free(list);
 	return 0;
-}*/
-
+}
+*/
 //Tests how to exterm 
 //Works and holds. to change to holding (will result in window closing as 
 //shell code is incomplete) change "-hold" to "+hold"
@@ -482,6 +482,7 @@ int main(int argc, char **argv)
 			{
 				case LIST_USERS:
 					{
+					//create a list of active users, print to server
 					int q;
 					int toMalloc = 0;
 					char* n;
@@ -490,27 +491,31 @@ int main(int argc, char **argv)
 							toMalloc += 2; 
 						}
 					char* list;
-					list = (char*) malloc(toMalloc+1);							
+					if( (list = (char*) malloc(toMalloc+1)) == NULL){
+						perror("insufficient memory");
+						exit(-1);
+					}							
 					for(q=0;q<MAX_USERS;q++){
 							if(users[q].status != SLOT_EMPTY){
-							n = malloc(strlen(users[q].name));
+							if( (n = malloc(strlen(users[q].name))) == NULL){
+								perror("insufficient memory");
+								exit(-1);
+							}
 							strncpy(n,users[q].name,(strlen(users[q].name)+1));
 							strncat(list,"\n",1);
 							strncat(list,n,strlen(n));
 							free(n);								}
 						}
-					if(write(fd_serv[1],list,strlen(list) + 1) < 0)
+					if(write(fd_serv[1],list,strlen(list) + 1) < 0){
 						perror("Printing userlist to server shell");
-					/*if(write(users[i].ptoc[1],list,strlen(list) + 1) <0){
-						perror("write failed");
 						exit(-1);
-					}*/
+					}
 					free(list);
 					}break;
 				case ADD_USER:
 					add_user(users, buf, fd_serv[1]);
 					break;
-			        case BROADCAST:
+			    case BROADCAST:
 					broadcast_msg(users, buf, fd_serv[1], "Server");
 					break;
 				case CHILD_PID:
@@ -522,7 +527,8 @@ int main(int argc, char **argv)
 				{
 					char* uname = extract_name(KICK, buf);
 					int uindx = find_user_index(users, uname);
-					cleanup_user(uindx, users);
+					if(uindx != -1)
+						cleanup_user(uindx, users);
 				}break;
 				default:
 					break;
@@ -564,8 +570,7 @@ int main(int argc, char **argv)
 					{
 					      case LIST_USERS:
 							{
-							/*int asdf;
-							asdf = list_users(users, i);*/
+							//create a list of active users, print to shell of requesting user
 							int q;
 							int toMalloc = 0;
 							char* n;
@@ -574,11 +579,16 @@ int main(int argc, char **argv)
 								toMalloc += 2; 
 							}
 							char* list;
-							//list = (char*) malloc(MAX_USERS * MSG_SIZE);
-							list = (char*) malloc(toMalloc+1);
+							if( (list = (char*) malloc(toMalloc+1)) == NULL){
+								perror("insufficient memory");
+								exit(-1);
+							}
 							for(q=0;q<MAX_USERS;q++){
 								if(users[q].status != SLOT_EMPTY){
-								n = malloc(strlen(users[q].name));
+								if( (n = malloc(strlen(users[q].name))) == NULL){
+									perror("insufficient memory");
+									exit(-1);
+								}
 								strncpy(n,users[q].name,(strlen(users[q].name)+1));
 								strncat(list,"\n",1);
 								strncat(list,n,strlen(n));
