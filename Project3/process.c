@@ -282,15 +282,20 @@ void timeout_handler(int sig) {
  * The message id is determined by the receiver and has to be included in the ACK packet.
  * Return 0 if success, -1 otherwise.
  */
-int send_ACK(int mailbox_id, pid_t pid, int packet_num) {
+int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
     // TODO construct an ACK packet
-
+	packet_t pack;
+	pack.mtype = 2;
+	pack.packet_num = packet_num; 
     int delay = rand() % MAX_DELAY;
     sleep(delay);
 
     // TODO send an ACK for the packet it received
-
-    return -1;
+	if(msgsnd(local_mailbox_id,(void*) &pack, sizeof(pack),0)== -1)
+		return -1;
+	if(kill(pid,SIGIO) == -1)
+		return -1;
+    return 0;
 }
 
 /**
@@ -332,6 +337,8 @@ void receive_packet(int sig) {
     // if (drop_packet()) {
     //     ...
     // }
+	
+	
 }
 
 /**
