@@ -116,11 +116,11 @@ int get_process_info(char *process_name, process_t *info) {
 }
 
 /**
- * TODO Send a packet to a mailbox identified by the local_mailbox_id, and send a SIGIO to the pid.
+ * Send a packet to a mailbox identified by the local_mailbox_id, and send a SIGIO to the pid.
  * Return 0 if success, -1 otherwise.
  */
 int send_packet(packet_t *packet, int local_mailbox_id, int pid) {
-    if(msgsnd(local_mailbox_id, (void *)packet, packet->total_size, 0) == -1)
+    if(msgsnd(local_mailbox_id, (void *)packet, PACKET_SIZE, 0) == -1)
     		return -1;
     	
     	if(kill(pid, SIGIO) == -1)
@@ -263,6 +263,8 @@ int send_message(char *receiver, char* content) {
     // the number of packets sent at a time depends on the WINDOW_SIZE.
     // you need to change the message_id of each packet (initialized to -1)
     // with the message_id included in the ACK packet sent by the receiver
+    
+    
 
 
     return -1;
@@ -332,6 +334,21 @@ void receive_packet(int sig) {
     // if (drop_packet()) {
     //     ...
     // }
+    packet_t pckt;
+    
+    if(msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0) == -1)
+    		perror("failed to read mailbox");
+    	
+    	if(pckt.mtype == ACK)
+    		handle_ACK(&pckt);
+    	else if(pckt.mtype == DATA)
+    	{
+    		int user_mailbox_id;
+    		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
+    			perror("failed to get mailbox");
+    		
+    		handle_data(&pckt, &message->sender, user_mailbox_id);
+    	}
 }
 
 /**
