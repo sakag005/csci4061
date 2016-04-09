@@ -60,11 +60,11 @@ int init(char *process_name, key_t key, int wsize, int delay, int to, int drop) 
     printf("[%s] pid: %d, key: %d\n", myinfo.process_name, myinfo.pid, myinfo.key);
     printf("window_size: %d, max delay: %d, timeout: %d, drop rate: %d%%\n", WINDOW_SIZE, MAX_DELAY, TIMEOUT, DROP_RATE);
 
-    // TODO setup a message queue and save the id to the mailbox_id
+    // setup a message queue and save the id to the mailbox_id
     if((mailbox_id = msgget(myinfo.key, 0777 | IPC_CREAT)) == -1)
     		return -1;
 
-    // TODO set the signal handler for receiving packets
+    // set the signal handler for receiving packets
     //alarm signal handler
     struct sigaction timeout_act;
     sigfillset(&timeout_act.sa_mask);
@@ -116,11 +116,17 @@ int get_process_info(char *process_name, process_t *info) {
 }
 
 /**
- * TODO Send a packet to a mailbox identified by the mailbox_id, and send a SIGIO to the pid.
+ * TODO Send a packet to a mailbox identified by the local_mailbox_id, and send a SIGIO to the pid.
  * Return 0 if success, -1 otherwise.
  */
-int send_packet(packet_t *packet, int mailbox_id, int pid) {
-    return -1;
+int send_packet(packet_t *packet, int local_mailbox_id, int pid) {
+    if(msgsnd(local_mailbox_id, (void *)packet, packet->total_size, 0) == -1)
+    		return -1;
+    	
+    	if(kill(pid, SIGIO) == -1)
+    		return -1;
+    	
+    	return 0;
 }
 
 /**
@@ -267,6 +273,7 @@ int send_message(char *receiver, char* content) {
  * received yet. Reset the TIMEOUT.
  */
 void timeout_handler(int sig) {
+	
 
 }
 
