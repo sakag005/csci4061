@@ -344,16 +344,16 @@ void receive_packet(int sig) {
     if(msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0) == -1)
     		perror("failed to read mailbox");
     	
-    	if(pckt.mtype == ACK)
-    		handle_ACK(&pckt);
-    	else if(pckt.mtype == DATA)
-    	{
-    		int user_mailbox_id;
-    		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
-    			perror("failed to get mailbox");
-    		
-    		handle_data(&pckt, &message->sender, user_mailbox_id);
-    	}
+	if(pckt.mtype == ACK)
+		handle_ACK(&pckt);
+	else if(pckt.mtype == DATA)
+	{
+		int user_mailbox_id;
+		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
+			perror("failed to get mailbox");
+	
+		handle_data(&pckt, &message->sender, user_mailbox_id);
+	}
 
 }
 
