@@ -61,10 +61,27 @@ int init(char *process_name, key_t key, int wsize, int delay, int to, int drop) 
     printf("window_size: %d, max delay: %d, timeout: %d, drop rate: %d%%\n", WINDOW_SIZE, MAX_DELAY, TIMEOUT, DROP_RATE);
 
     // TODO setup a message queue and save the id to the mailbox_id
+    if((mailbox_id = msgget(myinfo.key, 0777 | IPC_CREAT)) == -1)
+    		return -1;
 
     // TODO set the signal handler for receiving packets
+    //alarm signal handler
+    struct sigaction timeout_act;
+    sigfillset(&timeout_act.sa_mask);
+    timeout_act.sa_handler = timeout_handler;
+    
+    if(sigaction(SIGALRM, &timeout_act, NULL) == -1)
+    		return -1;
+    
+    //I/O signal handler
+    struct sigaction io_act;
+    sigfillset(&io_act.sa_mask);
+    io_act.sa_handler = receive_packet;
+    
+    if(sigaction(SIGIO, &io_act, NULL) == -1)
+    		return -1;
 
-    return -1;
+    return 0;
 }
 
 /**
