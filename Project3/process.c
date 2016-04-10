@@ -27,6 +27,8 @@ message_t *message;
 int num_available_packets; // number of packets that can be sent (0 <= n <= WINDOW_SIZE)
 int is_receiving = 0; // a helper varibale may be used to handle multiple senders
 
+int num_timeouts = 0;
+
 /**
  * TODO complete the definition of the function
  * 1. Save the process information to a file and a process structure for future use.
@@ -275,8 +277,10 @@ int send_message(char *receiver, char* content) {
  * received yet. Reset the TIMEOUT.
  */
 void timeout_handler(int sig) {
-	
-
+	for(i = 0; i < message_stats->num_packets; i++){
+		if(message_stats->packet_status[i]	
+	}	
+	num_timesout++;
 }
 
 /**
@@ -287,8 +291,11 @@ void timeout_handler(int sig) {
 int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
     // TODO construct an ACK packet
 	packet_t pack;
-	pack.mtype = 2;
+	pack.mtype = ACK;
+	pack.message_id = message_id;
 	pack.packet_num = packet_num; 
+	pack.pid = myinfo->pid;
+	pack.process_name = myinfo->process_name;
     int delay = rand() % MAX_DELAY;
     sleep(delay);
 
@@ -315,7 +322,6 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
  * You should handle unexpected cases such as duplicate ACKs, ACK for completed message, etc.
  */
 void handle_ACK(packet_t *packet) {
-
 }
 
 /**
