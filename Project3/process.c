@@ -315,7 +315,12 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
  * You should handle unexpected cases such as duplicate ACKs, ACK for completed message, etc.
  */
 void handle_ACK(packet_t *packet) {
-
+	if(!message_stats.packet_status[packet->packet_num].ACK_received && packet->message_id == message_id)
+	{
+		message_stats.packet_status[packet->packet_num].ACK_received = 1;
+		message_stats.num_packets_received++;
+		alarm(0);
+	}
 }
 
 /**
