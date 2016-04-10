@@ -29,7 +29,7 @@ int is_receiving = 0; // a helper varibale may be used to handle multiple sender
 
 int consecutive_TO = 0; //number of times we have timed out since last ACK 
 
-int free_slots = 0;  // ADD TO MESSAGE_STATUS_T STRUCT!!!!!!!!!!!
+
 /**
  * TODO complete the definition of the function
  * 1. Save the process information to a file and a process structure for future use.
@@ -261,7 +261,7 @@ int send_message(char *receiver, char* content) {
         free(message_stats.packet_status);
         return -1;
     }
-
+    message_stats.free_slots = 0;  // setfree slots
     // TODO send packets to the receiver
     // the number of packets sent at a time depends on the WINDOW_SIZE.
     // you need to change the message_id of each packet (initialized to -1)
@@ -282,7 +282,7 @@ int send_message(char *receiver, char* content) {
       message_stats.packet_status[x].packet.message_id = message_stats.packet_status[i].packet.message_id;
     }
     i++;
-    free_slots--;
+    message_stats.free_slots--;
     
     for(i; i < num_available_packets; i++){
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
@@ -293,11 +293,11 @@ int send_message(char *receiver, char* content) {
 	printf("TIMEOUT\n");
 	return -1;
       }
-      if(free_slots > 0){
+      if(message_stats.free_slots > 0){
       i++;
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
       message_stats.packet_status[i].is_sent = 1;
-      free_slots--;
+      message_stats.free_slots--;
       }
       
       
@@ -367,7 +367,7 @@ void handle_ACK(packet_t *packet) {
 		message_stats.num_packets_received++;
 		message_stats.packet_status[packet->packet_num].packet.message_id = packet->message_id;
 		consecutive_TO = 0;
-		free_slots++;
+		message_stats.free_slots++;
 		alarm(TIMEOUT);
 	}
 }

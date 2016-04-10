@@ -42,6 +42,7 @@ typedef struct {
     int num_packets;
     int is_sending;
     packet_status_t *packet_status;
+    int free_slots;
 } message_status_t;
 
 /* This structure is used by the receiver to store a message */
