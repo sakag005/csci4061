@@ -27,7 +27,7 @@ message_t *message;
 int num_available_packets; // number of packets that can be sent (0 <= n <= WINDOW_SIZE)
 int is_receiving = 0; // a helper varibale may be used to handle multiple senders
 
-int num_timeouts = 0;
+int consecutive_TO = 0; //number of times we have timed out since last ACK 
 
 /**
  * TODO complete the definition of the function
@@ -280,7 +280,8 @@ void timeout_handler(int sig) {
 	for(i = 0; i < message_stats->num_packets; i++){
 		if(message_stats->packet_status[i]	
 	}	
-	num_timesout++;
+	consecutive_TO++;
+	alarm(TIMEOUT);
 }
 
 /**
@@ -322,6 +323,14 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
  * You should handle unexpected cases such as duplicate ACKs, ACK for completed message, etc.
  */
 void handle_ACK(packet_t *packet) {
+	
+	if(!message_stats.packet_status[packet->packet_num].ACK_received && packet->message_id == message_id)
+	{
+		message_stats.packet_status[packet->packet_num].ACK_received = 1;
+		message_stats.num_packets_received++;
+		consecutive_TO = 0;
+		alarm(TIMEOUT);
+	}
 }
 
 /**
@@ -350,16 +359,16 @@ void receive_packet(int sig) {
     if(msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0) == -1)
     		perror("failed to read mailbox");
     	
-    	if(pckt.mtype == ACK)
-    		handle_ACK(&pckt);
-    	else if(pckt.mtype == DATA)
-    	{
-    		int user_mailbox_id;
-    		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
-    			perror("failed to get mailbox");
-    		
-    		handle_data(&pckt, &message->sender, user_mailbox_id);
-    	}
+	if(pckt.mtype == ACK)
+		handle_ACK(&pckt);
+	else if(pckt.mtype == DATA)
+	{
+		int user_mailbox_id;
+		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
+			perror("failed to get mailbox");
+	
+		handle_data(&pckt, &message->sender, user_mailbox_id);
+	}
 
 }
 
