@@ -277,8 +277,11 @@ int send_message(char *receiver, char* content) {
  * received yet. Reset the TIMEOUT.
  */
 void timeout_handler(int sig) {
-	for(i = 0; i < message_stats->num_packets; i++){
-		if(message_stats->packet_status[i]	
+	int i;
+	for(i = 0; i < message_stats.num_packets; i++){
+			if(message_stats.packet_status[i].ACK_received == 0){
+				send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid);
+			}
 	}	
 	consecutive_TO++;
 	alarm(TIMEOUT);
@@ -295,8 +298,7 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
 	pack.mtype = ACK;
 	pack.message_id = message_id;
 	pack.packet_num = packet_num; 
-	pack.pid = myinfo->pid;
-	pack.process_name = myinfo->process_name;
+	pack.pid = myinfo.pid;
     int delay = rand() % MAX_DELAY;
     sleep(delay);
 
