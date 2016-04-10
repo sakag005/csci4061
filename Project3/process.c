@@ -330,6 +330,7 @@ void handle_ACK(packet_t *packet) {
 	{
 		message_stats.packet_status[packet->packet_num].ACK_received = 1;
 		message_stats.num_packets_received++;
+		message_stats.packet_status[packet->packet_num].packet.message_id = packet->message_id;
 		consecutive_TO = 0;
 		alarm(TIMEOUT);
 	}
