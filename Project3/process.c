@@ -314,7 +314,7 @@ int send_message(char *receiver, char* content) {
 void timeout_handler(int sig) {
 	int i;
 	for(i = 0; i < message_stats.num_packets; i++){
-			if(message_stats.packet_status[i].ACK_received == 0){
+			if(message_stats.packet_status[i].ACK_received == 0 && message_stats.packet_status[i].is_sent == 1){
 				send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid);
 			}
 	}	
@@ -365,6 +365,7 @@ void handle_ACK(packet_t *packet) {
 	{
 		message_stats.packet_status[packet->packet_num].ACK_received = 1;
 		message_stats.num_packets_received++;
+		message_stats.packet_status[packet->packet_num].packet.message_id = packet->message_id;
 		consecutive_TO = 0;
 		free_slots++;
 		alarm(TIMEOUT);

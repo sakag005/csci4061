@@ -30,7 +30,7 @@ typedef struct {
 /* This structure is used to monitor the status of each packet */
 typedef struct {
     packet_t packet;
-    int is_sent;
+    int is_sent; //1 for sent and 0 for not
     int ACK_received; //1 for received 0 for not
 } packet_status_t;
 
