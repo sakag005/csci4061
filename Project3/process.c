@@ -279,7 +279,7 @@ int send_message(char *receiver, char* content) {
 void timeout_handler(int sig) {
 	int i;
 	for(i = 0; i < message_stats.num_packets; i++){
-			if(message_stats.packet_status[i].ACK_received == 0){
+			if(message_stats.packet_status[i].ACK_received == 0 && message_stats.packet_status[i].is_sent == 1){
 				send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid);
 			}
 	}	
