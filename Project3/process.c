@@ -29,6 +29,7 @@ int is_receiving = 0; // a helper varibale may be used to handle multiple sender
 
 int consecutive_TO = 0; //number of times we have timed out since last ACK 
 
+int free_slots = 0;  // ADD TO MESSAGE_STATUS_T STRUCT!!!!!!!!!!!
 /**
  * TODO complete the definition of the function
  * 1. Save the process information to a file and a process structure for future use.
@@ -265,11 +266,45 @@ int send_message(char *receiver, char* content) {
     // the number of packets sent at a time depends on the WINDOW_SIZE.
     // you need to change the message_id of each packet (initialized to -1)
     // with the message_id included in the ACK packet sent by the receiver
-    
-    
+    int i = 0;
+    int x;
+    message_stats.packet_status[i].packet.packet_num = i;
+    send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
+    message_stats.packet_status[i].is_sent = 1;
+    while (message_stats.packet_status[i].ACK_received == 0){
+      if(consecutive_TO == MAX_TIMEOUT){
+	printf("TIMEOUT\n");
+	return -1;
+      }
+    }
 
-
-    return -1;
+    for(x = 1; x < num_packets; x++){
+      message_stats.packet_status[x].packet.message_id = message_stats.packet_status[i].packet.message_id;
+    }
+    i++;
+    free_slots--;
+    
+    for(i; i < num_available_packets; i++){
+      send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
+      message_stats.packet_status[i].is_sent = 1;
+    }
+    while (message_stats.num_packets_received < num_packets){
+      if(consecutive_TO == MAX_TIMEOUT){
+	printf("TIMEOUT\n");
+	return -1;
+      }
+      if(free_slots > 0){
+      i++;
+      send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
+      message_stats.packet_status[i].is_sent = 1;
+      free_slots--;
+      }
+      
+      
+    }
+      // check is consectutive_TO == MAX_TIMEOUTS to exit
+    
+    return 0;
 }
 
 /**
@@ -331,6 +366,7 @@ void handle_ACK(packet_t *packet) {
 		message_stats.packet_status[packet->packet_num].ACK_received = 1;
 		message_stats.num_packets_received++;
 		consecutive_TO = 0;
+		free_slots++;
 		alarm(TIMEOUT);
 	}
 }
