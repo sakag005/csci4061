@@ -352,7 +352,20 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  * packet from a different sender, etc.
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
+	if(message_stats.num_packets_received == 0){
+		message->data = malloc(packet->total_size);
+	}
+	int i;
+	for(i = 0; i < sizeof(packet->data); i++){
+		int j;
+		for(j = 16 * packet->packet_num; j < (16 * packet->packet_num) + (sizeof(packet->data)); j++){
+			message->data[j] = packet->data[i];
+		}
+	}
 
+	if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
+		perror("ACK failed to send");
+		
 }
 
 /**
