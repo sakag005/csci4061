@@ -353,8 +353,10 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	if(message->num_packets_received == 0){
-		message->data = (char*) malloc((packet->total_size + 1) * sizeof(char));
-		message->is_received = (int*) calloc(packet->num_packets,sizeof(int));
+		if((message->data = (char*) malloc((packet->total_size + 1) * sizeof(char))) == NULL )
+			perror("message data Malloc failed");
+		if((message->is_received = (int*) calloc(packet->num_packets,sizeof(int))) == NULL )
+			perror("is_received Malloc failed");
 	}
 	//only write data to message if data hasn't been previously received
 	if(message->is_received[packet->packet_num] == 0){
