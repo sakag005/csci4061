@@ -353,7 +353,7 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	if(message->num_packets_received == 0){
-		message->data = (char*) malloc(packet->total_size * sizeof(char));
+		message->data = (char*) malloc((packet->total_size + 1) * sizeof(char));
 		message->is_received = (int*) calloc(packet->num_packets,sizeof(int));
 	}
 	//only write data to message if data hasn't been previously received
@@ -366,10 +366,13 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		//if it's the last packet 
 		if(packet->packet_num == packet->num_packets - 1){
 			int size = strlen(packet->data);
-			for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size; j++){
+			for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size - 1; j++){
 				message->data[j] = packet->data[i];
 				i++;
 			}
+			//add the null terminator
+			message->data[j+1] = '\0';
+			
 		}else{ //else for all other packets
 			for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + PACKET_SIZE; j++){
 				message->data[j] = packet->data[i];
@@ -379,9 +382,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		//send ACK that data has been received
 		if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
 			perror("ACK failed to send");
-		}
-	
-	
+	}
 }
 
 /**
