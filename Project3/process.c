@@ -384,6 +384,9 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
 			perror("ACK failed to send");
 	}
+	if(message->num_packets_received == packet->num_packets){
+		message->is_complete = 1;
+	}
 }
 
 /**

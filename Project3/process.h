@@ -49,7 +49,7 @@ typedef struct {
 typedef struct {
     process_t sender;
     int num_packets_received;
-    int is_complete;
+    int is_complete; //1 for complete and 0 for not
     int *is_received;
     char *data;
 } message_t;
