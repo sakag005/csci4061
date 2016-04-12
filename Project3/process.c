@@ -352,13 +352,17 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  * packet from a different sender, etc.
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
-	if(message_stats.num_packets_received == 0){
+	if(message->num_packets_received == 0){
 		message->data = (char*) malloc(packet->total_size * sizeof(char));
+		message->is_received = (int*) calloc(packet->num_packets,sizeof(int));
 	}
+
+	message->is_received[packet->packet_num] = 1;
+
 	int i = 0;
 	int j = 0;
 
-	//if its the last packet 
+	//if it's the last packet 
 	if(packet->packet_num == packet->num_packets - 1){
 		int size = strlen(packet->data);
 		for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size; j++){
@@ -373,7 +377,9 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	}
 	if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
 		perror("ACK failed to send");
-		
+	
+	
+	
 }
 
 /**
