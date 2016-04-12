@@ -8,6 +8,8 @@
 #define MAX_NAME_LEN 32
 #define MAX_TIMEOUT 5
 
+
+
 /* This structure stores the information of a process */
 typedef struct {
     int pid;

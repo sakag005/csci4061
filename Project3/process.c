@@ -447,5 +447,5 @@ void receive_packet(int sig) {
  * Save the message content to the data and return 0 if success, -1 otherwise
  */
 int receive_message(char *data) {
-    return -1;
+
 }
