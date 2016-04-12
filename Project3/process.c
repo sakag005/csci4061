@@ -358,6 +358,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	}
 	//only write data to message if data hasn't been previously received
 	if(message->is_received[packet->packet_num] == 0){
+		message->num_packets_received++;
 		message->is_received[packet->packet_num] = 1;
 
 		int i = 0;
@@ -447,5 +448,6 @@ void receive_packet(int sig) {
  * Save the message content to the data and return 0 if success, -1 otherwise
  */
 int receive_message(char *data) {
-    return -1;
+    printf("receiving messages \n");
+	return -1;
 }
