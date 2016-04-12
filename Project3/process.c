@@ -353,11 +353,14 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	if(message->num_packets_received == 0){
-		message->data = (char*) malloc((packet->total_size + 1) * sizeof(char));
-		message->is_received = (int*) calloc(packet->num_packets,sizeof(int));
+		if((message->data = (char*) malloc((packet->total_size + 1) * sizeof(char))) == NULL )
+			perror("message data Malloc failed");
+		if((message->is_received = (int*) calloc(packet->num_packets,sizeof(int))) == NULL )
+			perror("is_received Malloc failed");
 	}
 	//only write data to message if data hasn't been previously received
 	if(message->is_received[packet->packet_num] == 0){
+		message->num_packets_received++;
 		message->is_received[packet->packet_num] = 1;
 
 		int i = 0;
@@ -382,6 +385,9 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		//send ACK that data has been received
 		if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
 			perror("ACK failed to send");
+	}
+	if(message->num_packets_received == packet->num_packets){
+		message->is_complete = 1;
 	}
 }
 
@@ -447,5 +453,10 @@ void receive_packet(int sig) {
  * Save the message content to the data and return 0 if success, -1 otherwise
  */
 int receive_message(char *data) {
+<<<<<<< HEAD
 
+=======
+    printf("receiving messages \n");
+	return -1;
+>>>>>>> 5e44127bb7e474da89e6442a79523493a3449d81
 }
