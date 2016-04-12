@@ -354,14 +354,21 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	if(message_stats.num_packets_received == 0){
 		message->data = malloc(packet->total_size);
 	}
-	int i;
-	for(i = 0; i < sizeof(packet->data); i++){
-		int j;
-		for(j = 16 * packet->packet_num; j < (16 * packet->packet_num) + (sizeof(packet->data)); j++){
+	int i = 0;
+	int j = 0;
+	if(packet->packet_num == packet->num_packets - 1){
+		int size = strlen(packet->data);
+		for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size; j++){
 			message->data[j] = packet->data[i];
+			i++;
 		}
 	}
-
+	else{
+		for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + PACKET_SIZE; j++){
+			message->data[j] = packet->data[i];
+			i++;
+		}
+	}
 	if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
 		perror("ACK failed to send");
 		
