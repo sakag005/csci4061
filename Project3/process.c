@@ -352,18 +352,19 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	if(message_stats.num_packets_received == 0){
-		message->data = malloc(packet->total_size);
+		message->data = (char*) malloc(packet->total_size * sizeof(char));
 	}
 	int i = 0;
 	int j = 0;
+
+	//if its the last packet 
 	if(packet->packet_num == packet->num_packets - 1){
 		int size = strlen(packet->data);
 		for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size; j++){
 			message->data[j] = packet->data[i];
 			i++;
 		}
-	}
-	else{
+	}else{ //else for all other packets
 		for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + PACKET_SIZE; j++){
 			message->data[j] = packet->data[i];
 			i++;
