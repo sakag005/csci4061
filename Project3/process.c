@@ -288,6 +288,7 @@ int send_message(char *receiver, char* content) {
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
       message_stats.packet_status[i].is_sent = 1;
     }
+
     while (message_stats.num_packets_received < num_packets){
       if(consecutive_TO == MAX_TIMEOUT){
 	printf("TIMEOUT\n");
@@ -303,7 +304,7 @@ int send_message(char *receiver, char* content) {
       
     }
       // check is consectutive_TO == MAX_TIMEOUTS to exit
-    
+    consecutive_TO = 0;
     return 0;
 }
 
