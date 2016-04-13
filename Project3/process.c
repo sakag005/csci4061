@@ -12,7 +12,7 @@ int WINDOW_SIZE;
 int MAX_DELAY;
 int TIMEOUT;
 int DROP_RATE;
-
+//test add
 // process information
 process_t myinfo;
 int mailbox_id;
@@ -343,6 +343,8 @@ void timeout_handler(int sig) {
  */
 int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
     // TODO construct an ACK packet
+	
+	printf("sending ACK to mailbox %d \n ", local_mailbox_id);
 	packet_t pack;
 	pack.mtype = ACK;
 	pack.message_id = message_id;
@@ -416,7 +418,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
  * You should handle unexpected cases such as duplicate ACKs, ACK for completed message, etc.
  */
 void handle_ACK(packet_t *packet) {
-	
+	printf("handling ACK \n");	
 	if(!message_stats.packet_status[packet->packet_num].ACK_received && packet->message_id == message_id)
 	{
 		message_stats.packet_status[packet->packet_num].ACK_received = 1;
@@ -450,7 +452,6 @@ void receive_packet(int sig) {
     // }
     packet_t pckt;
     
-	printf("receiver and my mailbox is: %d \n", mailbox_id);
 
     if(msgrcv(mailbox_id, (void *)&pckt, sizeof(packet_t), 0, 0) == -1)
     		perror("failed to read mailbox\n");
@@ -463,12 +464,16 @@ void receive_packet(int sig) {
 	else if(pckt.mtype == DATA)
 	{
 		int user_mailbox_id;
+		if(message->num_packets_received == 0){
+			if(get_process_info(pckt.process_name, &message->sender) == -1)
+				perror("get_process_info failed\n");}
 		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
 			perror("failed to get mailbox\n");
 	
 		handle_data(&pckt, &message->sender, user_mailbox_id);
 	}
 
+	printf("receiver and my mailbox is: %d \n", mailbox_id);
 	printf("received packet with contents: %s \n", pckt.data);
 }
 
