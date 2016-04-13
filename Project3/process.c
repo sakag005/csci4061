@@ -300,12 +300,15 @@ int send_message(char *receiver, char* content) {
 
 	printf("third while loop \n");
     while (message_stats.num_packets_received < num_packets){
+      
       if(consecutive_TO == MAX_TIMEOUT){
 	printf("TIMEOUT\n");
 	return -1;
       }
       if(message_stats.free_slots > 0){
       i++;
+      printf ("i is equal to: %d\n", i);
+      printf("about to send next packet: %d\n", message_stats.packet_status[i].packet.packet_num);
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
       message_stats.packet_status[i].is_sent = 1;
       message_stats.free_slots--;
@@ -458,8 +461,7 @@ void receive_packet(int sig) {
     if(msgrcv(mailbox_id, (void *)&pckt, sizeof(packet_t), 0, 0) == -1)
     		perror("failed to read mailbox\n");
     	
-    //int x = msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0);
-	//printf("received message of size %d, \n", x); 
+    //printf("received message of size %d, \n", x); 
 
     if(pckt.mtype == ACK){
 	  printf("About to handle ACK\n");
