@@ -354,11 +354,11 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 	if(message->num_packets_received == 0){
 		if((message->data = (char*) malloc((packet->total_size + 1) * sizeof(char))) == NULL )
-			perror("message data Malloc failed");
+			perror("message data Malloc failed\n");
 		if((message->is_received = (int*) calloc(packet->num_packets,sizeof(int))) == NULL )
-			perror("is_received Malloc failed");
+			perror("is_received Malloc failed\n");
 		if(get_process_info(packet->process_name, &message->sender) == -1)
-			perror("get_process_info failed");
+			perror("get_process_info failed\n");
 	}
 	//only write data to message if data hasn't been previously received
 	if(message->is_received[packet->packet_num] == 0){
@@ -386,7 +386,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		}
 		//send ACK that data has been received
 		if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
-			perror("ACK failed to send");
+			perror("ACK failed to send\n");
 	}
 	if(message->num_packets_received == packet->num_packets){
 		message->is_complete = 1;
@@ -435,7 +435,7 @@ void receive_packet(int sig) {
     packet_t pckt;
     
     if(msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0) == -1)
-    		perror("failed to read mailbox");
+    		perror("failed to read mailbox\n");
     	
 	if(pckt.mtype == ACK)
 		handle_ACK(&pckt);
@@ -443,7 +443,7 @@ void receive_packet(int sig) {
 	{
 		int user_mailbox_id;
 		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
-			perror("failed to get mailbox");
+			perror("failed to get mailbox\n");
 	
 		handle_data(&pckt, &message->sender, user_mailbox_id);
 	}
@@ -457,7 +457,8 @@ void receive_packet(int sig) {
 int receive_message(char *data) {
 
 	if((message = (message_t*) malloc(sizeof(message_t))) == NULL)
-		return -1;
+	  perror("malloc failed\n");
+	        return -1;
 	
 	message->num_packets_received = 0;
 	message->is_complete = 0;
