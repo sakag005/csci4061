@@ -458,8 +458,8 @@ void receive_packet(int sig) {
 int receive_message(char *data) {
 
 	if((message = (message_t*) malloc(sizeof(message_t))) == NULL){
-	  perror("malloc failed\n");
-	        return -1;
+	  perror("malloc failed\n");	
+	  return -1;
 	}
 	message->num_packets_received = 0;
 	message->is_complete = 0;
@@ -473,6 +473,10 @@ int receive_message(char *data) {
 	if((data = strdup(message->data)) == NULL)
 		return -1;
 	
+	free(message->data);
+	free(message->is_received);
+	free(message);
+	message = NULL;
 
     return 0;
 
