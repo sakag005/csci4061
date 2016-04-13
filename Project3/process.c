@@ -284,9 +284,10 @@ int send_message(char *receiver, char* content) {
     i++;
     message_stats.free_slots--;
     
-    for(i; i < num_available_packets; i++){
+    while(i < num_available_packets){
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
       message_stats.packet_status[i].is_sent = 1;
+      i++;
     }
 
     while (message_stats.num_packets_received < num_packets){
