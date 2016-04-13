@@ -390,7 +390,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		//if it's the last packet 
 		if(packet->packet_num == packet->num_packets - 1){
 			int size = strlen(packet->data);
-			for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size - 1; j++){
+			for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + size; j++){
 				message->data[j] = packet->data[i];
 				i++;
 			}
@@ -458,10 +458,10 @@ void receive_packet(int sig) {
     // }
     packet_t pckt;
 
-    if(msgrcv(mailbox_id, (void *)&pckt, sizeof(packet_t), 0, 0) == -1)
+    if(msgrcv(mailbox_id, &pckt, sizeof(packet_t), 0, 0) == -1)
     		perror("failed to read mailbox\n");
     	
-    //printf("received message of size %d, \n", x); 
+     
 
     if(pckt.mtype == ACK){
 	  printf("About to handle ACK\n");
@@ -472,8 +472,10 @@ void receive_packet(int sig) {
 	{
 		int user_mailbox_id;
 		if(message->num_packets_received == 0){
-			if(get_process_info(pckt.process_name, &message->sender) == -1)
-				perror("get_process_info failed\n");}
+		  if(get_process_info(pckt.process_name, &message->sender) == -1){
+		    perror("get_process_info failed\n");
+		  }
+		}
 		if((user_mailbox_id = msgget(message->sender.key, 0777 | IPC_CREAT)) == -1)
 			perror("failed to get mailbox\n");
 	
