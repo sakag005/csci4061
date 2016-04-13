@@ -299,19 +299,20 @@ int send_message(char *receiver, char* content) {
     }
 
 	printf("third while loop \n");
-    while (message_stats.num_packets_received < num_packets){
-      
+	while (message_stats.num_packets_received < message_stats.num_packets){
+       
       if(consecutive_TO == MAX_TIMEOUT){
 	printf("TIMEOUT\n");
 	return -1;
       }
       if(message_stats.free_slots > 0){
-      printf ("i is equal to: %d\n", i);
       printf("about to send next packet: %d\n", message_stats.packet_status[i].packet.packet_num);
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
       message_stats.packet_status[i].is_sent = 1;
       message_stats.free_slots--;
       i++;
+      printf ("num packet received is equal to: %d\n", message_stats.num_packets_received);
+       printf ("num packet  is equal to: %d\n", message_stats.num_packets);
       }
       
       
