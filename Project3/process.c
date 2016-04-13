@@ -123,7 +123,9 @@ int get_process_info(char *process_name, process_t *info) {
  * Return 0 if success, -1 otherwise.
  */
 int send_packet(packet_t *packet, int local_mailbox_id, int pid) {
-    if(msgsnd(local_mailbox_id, (void *)packet, PACKET_SIZE, 0) == -1)
+	printf("sending packet with contents: %s \n", packet->data);
+	printf("sending to mailbox: %d \n", local_mailbox_id);
+    if(msgsnd(local_mailbox_id, (void *)packet, sizeof(packet_t), 0) == -1)
     		return -1;
     	
     	if(kill(pid, SIGIO) == -1)
@@ -261,6 +263,7 @@ int send_message(char *receiver, char* content) {
         free(message_stats.packet_status);
         return -1;
     }
+	printf("number of packets in stats: %d with data %s \n", message_stats.num_packets, &message_stats.packet_status->packet.data);
     message_stats.free_slots = 0;  // setfree slots
     // TODO send packets to the receiver
     // the number of packets sent at a time depends on the WINDOW_SIZE.
@@ -271,25 +274,31 @@ int send_message(char *receiver, char* content) {
     message_stats.packet_status[i].packet.packet_num = i;
     send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
     message_stats.packet_status[i].is_sent = 1;
+
+	printf("first while loop \n");
+
     while (message_stats.packet_status[i].ACK_received == 0){
       if(consecutive_TO == MAX_TIMEOUT){
 	printf("TIMEOUT\n");
 	return -1;
       }
     }
-
+	printf("just outside \n");
+	
     for(x = 1; x < num_packets; x++){
       message_stats.packet_status[x].packet.message_id = message_stats.packet_status[i].packet.message_id;
     }
     i++;
     message_stats.free_slots--;
     
+	printf("second while loop \n");
     while(i < num_available_packets){
       send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
       message_stats.packet_status[i].is_sent = 1;
       i++;
     }
 
+	printf("third while loop \n");
     while (message_stats.num_packets_received < num_packets){
       if(consecutive_TO == MAX_TIMEOUT){
 	printf("TIMEOUT\n");
@@ -314,6 +323,7 @@ int send_message(char *receiver, char* content) {
  * received yet. Reset the TIMEOUT.
  */
 void timeout_handler(int sig) {
+	printf("inside timeout handler \n");
 	int i;
 	for(i = 0; i < message_stats.num_packets; i++){
 			if(message_stats.packet_status[i].ACK_received == 0 && message_stats.packet_status[i].is_sent == 1){
@@ -321,7 +331,9 @@ void timeout_handler(int sig) {
 			}
 	}	
 	consecutive_TO++;
+	printf("before alarm \n");
 	alarm(TIMEOUT);
+	printf("outside alarm \n");
 }
 
 /**
@@ -340,7 +352,7 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
     sleep(delay);
 
     // TODO send an ACK for the packet it received
-	if(msgsnd(local_mailbox_id,(void*) &pack, sizeof(pack),0)== -1)
+	if(msgsnd(local_mailbox_id,(void*) &pack, sizeof(packet_t),0)== -1)
 		return -1;
 	if(kill(pid,SIGIO) == -1)
 		return -1;
@@ -353,6 +365,7 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
  * packet from a different sender, etc.
  */
 void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
+	printf("number of packets: %d \n", packet->num_packets);
 	if(message->num_packets_received == 0){
 		if((message->data = (char*) malloc((packet->total_size + 1) * sizeof(char))) == NULL )
 			perror("message data Malloc failed\n");
@@ -382,6 +395,9 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 		}else{ //else for all other packets
 			for(j = PACKET_SIZE * packet->packet_num; j < (PACKET_SIZE * packet->packet_num) + PACKET_SIZE; j++){
 				message->data[j] = packet->data[i];
+				
+				//printf("packet data: %s \n", &packet->data[i]);
+				//printf("message data: %s \n", &message->data[j]);
 				i++;
 			}
 		}
@@ -428,16 +444,20 @@ int get_packet_from_mailbox(int mailbox_id) {
  * If the packet is ACK, update the status of the packet.
  */
 void receive_packet(int sig) {
-
     // TODO you have to call drop_packet function to drop a packet with some probability
     // if (drop_packet()) {
     //     ...
     // }
     packet_t pckt;
     
-    if(msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0) == -1)
+	printf("receiver and my mailbox is: %d \n", mailbox_id);
+
+    if(msgrcv(mailbox_id, (void *)&pckt, sizeof(packet_t), 0, 0) == -1)
     		perror("failed to read mailbox\n");
     	
+    //int x = msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0);
+	//printf("received message of size %d, \n", x); 
+
 	if(pckt.mtype == ACK)
 		handle_ACK(&pckt);
 	else if(pckt.mtype == DATA)
@@ -449,6 +469,7 @@ void receive_packet(int sig) {
 		handle_data(&pckt, &message->sender, user_mailbox_id);
 	}
 
+	printf("received packet with contents: %s \n", pckt.data);
 }
 
 /**
@@ -456,7 +477,7 @@ void receive_packet(int sig) {
  * Save the message content to the data and return 0 if success, -1 otherwise
  */
 int receive_message(char *data) {
-
+	
 	if((message = (message_t*) malloc(sizeof(message_t))) == NULL){
 	  perror("malloc failed\n");	
 	  return -1;
