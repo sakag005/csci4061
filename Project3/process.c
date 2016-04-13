@@ -318,6 +318,7 @@ int send_message(char *receiver, char* content) {
     }
       // check is consectutive_TO == MAX_TIMEOUTS to exit
     consecutive_TO = 0;
+    alarm(0);
     return 0;
 }
 
