@@ -263,7 +263,7 @@ int send_message(char *receiver, char* content) {
         free(message_stats.packet_status);
         return -1;
     }
-	printf("number of packets in stats: %d with data %s \n", message_stats.num_packets, &message_stats.packet_status->packet.data);
+    //printf("number of packets in stats: %d with data %s \n", message_stats.num_packets, &message_stats.packet_status->packet.data);
     message_stats.free_slots = 0;  // setfree slots
     // TODO send packets to the receiver
     // the number of packets sent at a time depends on the WINDOW_SIZE.
@@ -276,7 +276,7 @@ int send_message(char *receiver, char* content) {
     message_stats.packet_status[i].is_sent = 1;
 
 	printf("first while loop \n");
-
+	
     while (message_stats.packet_status[i].ACK_received == 0){
       if(consecutive_TO == MAX_TIMEOUT){
 	printf("TIMEOUT\n");
@@ -404,7 +404,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 			}
 		}
 		//send ACK that data has been received
-		if(send_ACK(sender_mailbox_id,sender->pid,packet->pid) == -1)
+		if(send_ACK(sender_mailbox_id,sender->pid,packet->packet_num) == -1)
 			perror("ACK failed to send\n");
 	}
 	if(message->num_packets_received == packet->num_packets){
@@ -424,9 +424,12 @@ void handle_ACK(packet_t *packet) {
 		message_stats.packet_status[packet->packet_num].ACK_received = 1;
 		message_stats.num_packets_received++;
 		message_stats.packet_status[packet->packet_num].packet.message_id = packet->message_id;
+		
 		consecutive_TO = 0;
 		message_stats.free_slots++;
+		
 		alarm(TIMEOUT);
+		
 	}
 }
 
@@ -451,7 +454,6 @@ void receive_packet(int sig) {
     //     ...
     // }
     packet_t pckt;
-    
 
     if(msgrcv(mailbox_id, (void *)&pckt, sizeof(packet_t), 0, 0) == -1)
     		perror("failed to read mailbox\n");
@@ -459,8 +461,11 @@ void receive_packet(int sig) {
     //int x = msgrcv(mailbox_id, (void *)&pckt, PACKET_SIZE, 0, 0);
 	//printf("received message of size %d, \n", x); 
 
-	if(pckt.mtype == ACK)
-		handle_ACK(&pckt);
+    if(pckt.mtype == ACK){
+	  printf("About to handle ACK\n");
+	  handle_ACK(&pckt);
+	  printf("handled ACK\n");
+    }
 	else if(pckt.mtype == DATA)
 	{
 		int user_mailbox_id;
@@ -496,8 +501,7 @@ int receive_message(char *data) {
 	while(!message->is_complete)
 		pause();
 	
-	if((data = strdup(message->data)) == NULL)
-		return -1;
+	strcpy(data, message->data);
 	
 	free(message->data);
 	free(message->is_received);
