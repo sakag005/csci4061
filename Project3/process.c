@@ -357,6 +357,8 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 			perror("message data Malloc failed");
 		if((message->is_received = (int*) calloc(packet->num_packets,sizeof(int))) == NULL )
 			perror("is_received Malloc failed");
+		if(get_process_info(packet->process_name, &message->sender) == -1)
+			perror("get_process_info failed");
 	}
 	//only write data to message if data hasn't been previously received
 	if(message->is_received[packet->packet_num] == 0){
@@ -453,10 +455,22 @@ void receive_packet(int sig) {
  * Save the message content to the data and return 0 if success, -1 otherwise
  */
 int receive_message(char *data) {
-<<<<<<< HEAD
 
-=======
-    printf("receiving messages \n");
-	return -1;
->>>>>>> 5e44127bb7e474da89e6442a79523493a3449d81
+	if((message = (message_t*) malloc(sizeof(message_t))) == NULL)
+		return -1;
+	
+	message->num_packets_received = 0;
+	message->is_complete = 0;
+	
+	while(message->num_packets_received == 0)
+		pause();
+	
+	while(!message->is_complete)
+		pause();
+	
+	if((data = strdup(message->data)) == NULL)
+		return -1;
+	
+    return 0;
+
 }
