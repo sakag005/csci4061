@@ -270,64 +270,7 @@ int send_message(char *receiver, char* content) {
     // the number of packets sent at a time depends on the WINDOW_SIZE.
     // you need to change the message_id of each packet (initialized to -1)
     // with the message_id included in the ACK packet sent by the receiver
-    int i = 0;
-    int x;
-   // message_stats.packet_status[i].packet.packet_num = i;
-    
 
-	/*printf("first while loop \n");
-	
-    while (message_stats.packet_status[i].ACK_received == 0){
-     
-    }
-	printf("just outside \n");
-	
-    for(x = 1; x < num_packets; x++){
-      message_stats.packet_status[x].packet.message_id = message_stats.packet_status[i].packet.message_id;
-    }
-    i++;
-    message_stats.free_slots--;
-    
-	printf("second while loop \n");
-    while(i < num_available_packets){
-      send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
-      message_stats.packet_status[i].is_sent = 1;
-      i++;
-    }
-
-	printf("third while loop \n");
-<<<<<<< HEAD
-    while (message_stats.num_packets_received < num_packets ){
-      
-=======
-	while (message_stats.num_packets_received < message_stats.num_packets){
-       
->>>>>>> a98d6b0914b00a546ea9dc85dcec2b4202210887
-      if(consecutive_TO == MAX_TIMEOUT){
-		printf("TIMEOUT\n");
-		return -1;
-      }
-<<<<<<< HEAD
-      if(message_stats.free_slots > 0 && (i!=num_packets)){
-      	printf ("i is equal to: %d\n", i);
-		printf("num packets receiver: %d\n", message_stats.num_packets_received);
-      	printf("about to send next packet: %d\n", message_stats.packet_status[i].packet.packet_num);
-      	send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
-      	message_stats.packet_status[i].is_sent = 1;
-      	message_stats.free_slots--;
-      	i++;
-=======
-      if(message_stats.free_slots > 0){
-      printf("about to send next packet: %d\n", message_stats.packet_status[i].packet.packet_num);
-      send_packet(&message_stats.packet_status[i].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
-      message_stats.packet_status[i].is_sent = 1;
-      message_stats.free_slots--;
-      i++;
-      printf ("num packet received is equal to: %d\n", message_stats.num_packets_received);
-       printf ("num packet  is equal to: %d\n", message_stats.num_packets);
->>>>>>> a98d6b0914b00a546ea9dc85dcec2b4202210887
-      }
-    }*/
 
 	int first = get_next_packet(num_packets);
 	send_packet(&message_stats.packet_status[first].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
@@ -514,9 +457,7 @@ int get_packet_from_mailbox(int mailbox_id) {
  */
 void receive_packet(int sig) {
     // TODO you have to call drop_packet function to drop a packet with some probability
-    // if (drop_packet()) {
-    //     ...
-    // }
+    if (!drop_packet()) {
     packet_t pckt;
 
     if(msgrcv(mailbox_id, &pckt, sizeof(packet_t), 0, 0) == -1)
@@ -542,6 +483,7 @@ void receive_packet(int sig) {
 	}
 
 	printf("receiver and my mailbox is: %d \n", mailbox_id);
+    }
 	//printf("received packet with contents: %s \n", pckt.data);
 }
 
