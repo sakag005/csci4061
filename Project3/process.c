@@ -278,10 +278,7 @@ int send_message(char *receiver, char* content) {
 	/*printf("first while loop \n");
 	
     while (message_stats.packet_status[i].ACK_received == 0){
-      if(consecutive_TO == MAX_TIMEOUT){
-	printf("TIMEOUT\n");
-	return -1;
-      }
+     
     }
 	printf("just outside \n");
 	
@@ -336,12 +333,18 @@ int send_message(char *receiver, char* content) {
 	send_packet(&message_stats.packet_status[first].packet, message_stats.mailbox_id, message_stats.receiver_info.pid); 
     message_stats.packet_status[first].is_sent = 1;
 	message_stats.num_out++;	
+	alarm(TIMEOUT);
 
 	while(message_stats.num_packets_received < num_packets)
 	{
 		//send first packet
 		if(message_stats.num_packets_received == 0)
 		{
+			if(consecutive_TO == MAX_TIMEOUT){
+				printf("TIMEOUT\n");
+				alarm(0);
+				return -1;
+      		}			
 			continue;
 		}else if(message_stats.num_out < message_stats.free_slots)
 		{
@@ -352,6 +355,11 @@ int send_message(char *receiver, char* content) {
     			message_stats.packet_status[p].is_sent = 1;
 				message_stats.num_out++;	
 			}
+			if(consecutive_TO == MAX_TIMEOUT){
+				printf("TIMEOUT\n");
+				alarm(0);
+				return -1;
+      		}	
 		}
 	}
 
@@ -559,13 +567,14 @@ int receive_message(char *data) {
 	strcpy(data, message->data);
 
 	packet_t clnup;
-	while(msgrcv(mailbox_id, &clnup, sizeof(packet_t), 0, IPC_NOWAIT) != -1)
-
-//	if(errno != ENOMSG)
-//	{
-//		perror("msgrcv failed\n");
-//		return -1;
-//	}
+	while(msgrcv(mailbox_id, &clnup, sizeof(packet_t), 0, IPC_NOWAIT) != -1);
+	
+	int errnosave = errno;
+	if(errnosave != ENOMSG)
+	{
+		perror("msgrcv failed\n");
+		return -1;
+	}
 	
 	free(message->data);
 	free(message->is_received);
