@@ -4,6 +4,8 @@
  * William Rurik, Michael Jacobson, Peter Sakaguchi (for partner(s))
  * id: 4618256, 4377605, 4620018 */
 
+If a segfault or other memory error occurs, run make clean before re-testing.
+
 How to Compile/Run:
 	To compile, use the provided Makefile by calling "make clean" and then "make" in the
 	terminal. To create a process, run "./application N K W Md TO Dr" where N is the 
