@@ -31,7 +31,7 @@ int consecutive_TO = 0; //number of times we have timed out since last ACK
 
 
 /**
- * TODO complete the definition of the function
+ *  complete the definition of the function
  * 1. Save the process information to a file and a process structure for future use.
  * 2. Setup a message queue with a given key.
  * 3. Setup the signal handlers (SIGIO for handling packet, SIGALRM for timeout).
@@ -125,7 +125,7 @@ int get_process_info(char *process_name, process_t *info) {
 int send_packet(packet_t *packet, int local_mailbox_id, int pid) {
 	printf("sending packet with contents: %s \n", packet->data);
 	printf("sending to mailbox: %d \n", local_mailbox_id);
-	printf("Send a packet [%d] to pid:%d", packet->packet_num, pid);
+	printf("Send a packet [%d] to pid:%d\n", packet->packet_num, pid);
     if(msgsnd(local_mailbox_id, (void *)packet, sizeof(packet_t), 0) == -1)
     		return -1;
     	
@@ -216,7 +216,7 @@ int drop_packet() {
 }
 
 /**
- * TODO Send a message (broken down into multiple packets) to another process.
+ *  Send a message (broken down into multiple packets) to another process.
  * We first need to get the receiver's information and construct the status of
  * each of the packet.
  * Return 0 if success, -1 otherwise.
@@ -267,7 +267,7 @@ int send_message(char *receiver, char* content) {
     //printf("number of packets in stats: %d with data %s \n", message_stats.num_packets, &message_stats.packet_status->packet.data);
     message_stats.free_slots = 0;  // setfree slots
 	message_stats.num_out = 0;
-    // TODO send packets to the receiver
+    //  send packets to the receiver
     // the number of packets sent at a time depends on the WINDOW_SIZE.
     // you need to change the message_id of each packet (initialized to -1)
     // with the message_id included in the ACK packet sent by the receiver
@@ -315,7 +315,7 @@ int send_message(char *receiver, char* content) {
 }
 
 /**
- * TODO Handle TIMEOUT. Resend previously sent packets whose ACKs have not been
+ *  Handle TIMEOUT. Resend previously sent packets whose ACKs have not been
  * received yet. Reset the TIMEOUT.
  */
 void timeout_handler(int sig) {
@@ -333,12 +333,12 @@ void timeout_handler(int sig) {
 }
 
 /**
- * TODO Send an ACK to the sender's mailbox.
+ *  Send an ACK to the sender's mailbox.
  * The message id is determined by the receiver and has to be included in the ACK packet.
  * Return 0 if success, -1 otherwise.
  */
 int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
-    // TODO construct an ACK packet
+    //  construct an ACK packet
 	
 	packet_t pack;
 	pack.mtype = ACK;
@@ -350,7 +350,7 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
 
 	printf("Send an ACK for packet %d to pid:%d\n", packet_num, pid);
 
-    // TODO send an ACK for the packet it received
+    //  send an ACK for the packet it received
 	if(msgsnd(local_mailbox_id,(void*) &pack, sizeof(packet_t),0)== -1)
 		return -1;
 	if(kill(pid,SIGIO) == -1)
@@ -359,7 +359,7 @@ int send_ACK(int local_mailbox_id, pid_t pid, int packet_num) {
 }
 
 /**
- * TODO Handle DATA packet. Save the packet's data and send an ACK to the sender.
+ *  Handle DATA packet. Save the packet's data and send an ACK to the sender.
  * You should handle unexpected cases such as duplicate packet, packet for a different message,
  * packet from a different sender, etc.
  */
@@ -408,7 +408,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 }
 
 /**
- * TODO Handle ACK packet. Update the status of the packet to indicate that the packet
+ *  Handle ACK packet. Update the status of the packet to indicate that the packet
  * has been successfully received and reset the TIMEOUT.
  * You should handle unexpected cases such as duplicate ACKs, ACK for completed message, etc.
  */
@@ -450,12 +450,12 @@ int get_packet_from_mailbox(int mailbox_id) {
 }
 
 /**
- * TODO Receive a packet.
+ *  Receive a packet.
  * If the packet is DATA, send an ACK packet and SIGIO to the sender.
  * If the packet is ACK, update the status of the packet.
  */
 void receive_packet(int sig) {
-    // TODO you have to call drop_packet function to drop a packet with some probability
+    //  you have to call drop_packet function to drop a packet with some probability
 	if (!drop_packet()) {
 		packet_t pckt;
 
@@ -484,7 +484,7 @@ void receive_packet(int sig) {
 }
 
 /**
- * TODO Initialize the message structure and wait for a message from another process.
+ *  Initialize the message structure and wait for a message from another process.
  * Save the message content to the data and return 0 if success, -1 otherwise
  */
 int receive_message(char *data) {
