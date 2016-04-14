@@ -1,0 +1,57 @@
+/* CSci4061 S2016 Assignment 3
+ * section: 6 (for labs)
+ * date: 04/13/16
+ * William Rurik, Michael Jacobson, Peter Sakaguchi (for partner(s))
+ * id: 4618256, 4377605, 4620018 */
+
+How to Compile/Run:
+	To compile, use the provided Makefile by calling "make clean" and then "make" in the
+	terminal. To create a process, run "./application N K W Md TO Dr" where N is the 
+	process name, K is the mailbox key, W is the window size, Md is the max delay time,
+	TO is the timeout, and Dr is the drop rate. Each process should be created on the same
+	machine in order for them to communicate between each other. 
+
+How the program works:
+	Once the application has been run on the command line, each process should be given
+	a prompt asking if they are a sender or a receiver. If the process is a sender, then
+	it has the ability to send a message to any receiving process on the machine by first
+	entering the receiver name, and then the contents of the message (which cannot contain
+	spaces). Once the message has been sent, the process will again be asked if they would
+	like to become a sender or receiver.
+
+	If the process is a receiver, then they will sit idle until they begin to receive 
+	packets from a sender which, once all packets have been received, can be used to
+	construct the sent message. If two senders attempt to send messages to the same 
+	receiver simultaneously, then the receiver will only receive the message of one 
+	sender, while blocking the other sender who will then timeout. 
+
+Questions:
+	1. What is the effect of having a very short TIMEOUT period and a very long TIMEOUT 
+	period?
+
+	For a very short TIMEOUT period, a sender will spend less time on average waiting
+	before finding out if they have been blocked by a receiver, or before finding out
+	that their packets are not being received. However it is also possible that at very
+	short TIMEOUT periods the sender might accidentally TIMEOUT before the receiver has
+	time to send its ACK packets. For a very long TIMEOUT period, a sender is less likely 
+	to accidentally timeout when messaging a receiver, but if they are blocked or their
+	packets are not otherwise being sent it will take longer on average before they 
+	figure it out and TIMEOUT. 
+
+	2. What is the effect of having a very small window size (e.g., n=1) and a very large
+	window size?
+
+	A very small window size will result in very few packets being sent at a time which 
+	means that the receiver will generally take longer on average to send confirmation
+	ACKs and therefore the total travel time of the message will be longer on average. 
+	The packets are more likely to arrive in order however as opposed to a very large
+	window size which will send all of its packets faster, and therefore the message 
+	faster, but dropped packets will be more out of place than dropped packets in 
+	a small window size, so the resulting message of the very large windows size will 
+	be less well ordered.
+
+
+
+
+
+	
