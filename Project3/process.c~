@@ -458,7 +458,6 @@ void handle_ACK(packet_t *packet) {
 		consecutive_TO = 0;
 		int remaining = message_stats.num_packets - message_stats.num_packets_received;
 		message_stats.free_slots = (remaining > WINDOW_SIZE)? WINDOW_SIZE : remaining;
-		message_stats.num_out--;
 		
 		alarm(TIMEOUT);
 		

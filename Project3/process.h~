@@ -44,7 +44,6 @@ typedef struct {
     int num_packets;
     int is_sending;
     packet_status_t *packet_status;
-	int num_out;
     int free_slots;
 } message_status_t;
 
