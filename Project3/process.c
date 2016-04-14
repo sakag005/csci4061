@@ -123,8 +123,6 @@ int get_process_info(char *process_name, process_t *info) {
  * Return 0 if success, -1 otherwise.
  */
 int send_packet(packet_t *packet, int local_mailbox_id, int pid) {
-	printf("sending packet with contents: %s \n", packet->data);
-	printf("sending to mailbox: %d \n", local_mailbox_id);
 	printf("Send a packet [%d] to pid:%d\n", packet->packet_num, pid);
     if(msgsnd(local_mailbox_id, (void *)packet, sizeof(packet_t), 0) == -1)
     		return -1;
