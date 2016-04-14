@@ -4,7 +4,7 @@
 #define DATA 1
 #define ACK 2
 #define MAX_SIZE 1024
-#define PACKET_SIZE 16
+#define PACKET_SIZE 8
 #define MAX_NAME_LEN 32
 #define MAX_TIMEOUT 5
 
@@ -44,6 +44,7 @@ typedef struct {
     int num_packets;
     int is_sending;
     packet_status_t *packet_status;
+	int num_out;
     int free_slots;
 } message_status_t;
 

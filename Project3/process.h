@@ -4,7 +4,7 @@
 #define DATA 1
 #define ACK 2
 #define MAX_SIZE 1024
-#define PACKET_SIZE 8
+#define PACKET_SIZE 16
 #define MAX_NAME_LEN 32
 #define MAX_TIMEOUT 5
 

@@ -340,7 +340,7 @@ int send_message(char *receiver, char* content) {
 	while(message_stats.num_packets_received < num_packets)
 	{
 		//send first packet
-		if(message_stats.num_packets == 0)
+		if(message_stats.num_packets_received == 0)
 		{
 			continue;
 		}else if(message_stats.num_out < message_stats.free_slots)
@@ -423,7 +423,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 			perror("get_process_info failed\n");
 	}
 	//only write data to message if data hasn't been previously received
-	if(message->is_received[packet->packet_num] == 0){
+	if(message->is_received[packet->packet_num] == 0 && ((packet->message_id == message_id) || (message->num_packets_received == 0))){
 		message->num_packets_received++;
 		message->is_received[packet->packet_num] = 1;
 
@@ -450,7 +450,7 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
 			}
 		}
 		//send ACK that data has been received
-		if(send_ACK(sender_mailbox_id,sender->pid,packet->packet_num) == -1)
+		if(send_ACK(sender_mailbox_id,sender->pid, packet->packet_num) == -1)
 			perror("ACK failed to send\n");
 	}
 	if(message->num_packets_received == packet->num_packets){
@@ -465,11 +465,19 @@ void handle_data(packet_t *packet, process_t *sender, int sender_mailbox_id) {
  */
 void handle_ACK(packet_t *packet) {
 	printf("handling ACK \n");	
-	if(!message_stats.packet_status[packet->packet_num].ACK_received && packet->message_id == message_id)
+
+	if(message_stats.packet_status[packet->packet_num].packet.message_id == -1)
+	{
+		int i;		
+		for(i = 0; i < message_stats.num_packets; i++)
+			message_stats.packet_status[i].packet.message_id = packet->message_id;
+	}
+
+	if(!message_stats.packet_status[packet->packet_num].ACK_received)
 	{
 		message_stats.packet_status[packet->packet_num].ACK_received = 1;
 		message_stats.num_packets_received++;
-		message_stats.packet_status[packet->packet_num].packet.message_id = packet->message_id;
+		//message_stats.packet_status[packet->packet_num].packet.message_id = packet->message_id;
 		
 		consecutive_TO = 0;
 		int remaining = message_stats.num_packets - message_stats.num_packets_received;
@@ -505,8 +513,6 @@ void receive_packet(int sig) {
 
     if(msgrcv(mailbox_id, &pckt, sizeof(packet_t), 0, 0) == -1)
     		perror("failed to read mailbox\n");
-    	
-     
 
     if(pckt.mtype == ACK){
 	  printf("About to handle ACK\n");
@@ -528,7 +534,7 @@ void receive_packet(int sig) {
 	}
 
 	printf("receiver and my mailbox is: %d \n", mailbox_id);
-	printf("received packet with contents: %s \n", pckt.data);
+	//printf("received packet with contents: %s \n", pckt.data);
 }
 
 /**
@@ -551,11 +557,22 @@ int receive_message(char *data) {
 		pause();
 	
 	strcpy(data, message->data);
+
+	packet_t clnup;
+	while(msgrcv(mailbox_id, &clnup, sizeof(packet_t), 0, IPC_NOWAIT) != -1)
+
+//	if(errno != ENOMSG)
+//	{
+//		perror("msgrcv failed\n");
+//		return -1;
+//	}
 	
-	//free(message->data);
-	//free(message->is_received);
-	//free(message);
+	free(message->data);
+	free(message->is_received);
+	free(message);
 	//message = NULL;
+
+	message_id++;
 
     return 0;
 
