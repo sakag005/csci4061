@@ -25,6 +25,9 @@ typedef struct request_queue
         char    m_szRequest[MAX_REQUEST_LENGTH];
 } request_queue_t;
 
+static int total_requests;
+static int request_num = 0;
+
 static request_queue_t* requests;
 
 static pthread_t dispatchers[MAX_THREADS];
@@ -34,7 +37,9 @@ void * dispatch(void * arg)
 {
 	while(1)
 	{
-		if(accept_connection() != 0)
+		if(accept_connection() != 0);
+
+		
 	}	
 
 	return NULL;
@@ -56,32 +61,34 @@ int main(int argc, char **argv)
 
         printf("Call init() first and make a dispather and worker threads\n");
 
-		init(argv[1]);
+		init(atoi(argv[1]));
 
-		requests = (request_queue_t*)malloc(argv[5]*sizeof(request_queue_t));
+		total_requests = atoi(argv[5]);
+
+		requests = (request_queue_t*)malloc(total_requests*sizeof(request_queue_t));
 
 		int i;
 		for(i = 0; i < atoi(argv[3]); i++)
 		{
-			if(pthread_create(&dispatchers[i], NULL, dispatch) != 0)
+			if(pthread_create(&dispatchers[i], NULL, dispatch) != 0);
 		}
 		
 		int j;
 		for(j = 0; j < atoi(argv[4]); j++)
 		{
-			if(pthread_create(&workers[j], NULL, worker) != 0)
+			if(pthread_create(&workers[j], NULL, worker) != 0);
 		}
 
 		int k;
 		for(k = 0; k < atoi(argv[3]); k++)
 		{
-			if(pthread_join(dispatchers[i], NULL) != 0)
+			if(pthread_join(dispatchers[i], NULL) != 0);
 		}
 
 		int l;
 		for(l = 0; l < atoi(argv[4]); l++)
 		{
-			if(pthread_join(workers[i], NULL) != 0)
+			if(pthread_join(workers[i], NULL) != 0);
 		}
 		
 
