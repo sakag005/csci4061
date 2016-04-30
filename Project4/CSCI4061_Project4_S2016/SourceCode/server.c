@@ -33,6 +33,15 @@ static request_queue_t* requests;
 static pthread_t dispatchers[MAX_THREADS];
 static pthread_t workers[MAX_THREADS];
 
+static pthread_mutex_t queue_access = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t dispatch_CV = PTHREAD_COND_INITIALIZER;
+static pthread_cond_t worker_CV = PTHREAD_COND_INITIALIZER;
+
+/*void insert_request(request_queue_t req)
+{
+	pthread_mutex
+}*/
+
 void * dispatch(void * arg)
 {
 	while(1)
@@ -70,25 +79,25 @@ int main(int argc, char **argv)
 		int i;
 		for(i = 0; i < atoi(argv[3]); i++)
 		{
-			if(pthread_create(&dispatchers[i], NULL, dispatch) != 0);
+			if(pthread_create(&dispatchers[i], NULL, dispatch, NULL) != 0);
 		}
 		
 		int j;
 		for(j = 0; j < atoi(argv[4]); j++)
 		{
-			if(pthread_create(&workers[j], NULL, worker) != 0);
+			if(pthread_create(&workers[j], NULL, worker, NULL) != 0);
 		}
 
 		int k;
 		for(k = 0; k < atoi(argv[3]); k++)
 		{
-			if(pthread_join(dispatchers[i], NULL) != 0);
+			if(pthread_join(dispatchers[k], NULL) != 0);
 		}
 
 		int l;
 		for(l = 0; l < atoi(argv[4]); l++)
 		{
-			if(pthread_join(workers[i], NULL) != 0);
+			if(pthread_join(workers[l], NULL) != 0);
 		}
 		
 
