@@ -25,8 +25,10 @@ typedef struct request_queue
         char    m_szRequest[MAX_REQUEST_LENGTH];
 } request_queue_t;
 
+static int input_index = 0;
+static int output_index = 0;
 static int total_requests;
-static int request_num = 0;
+static int request_count = 0;
 
 static request_queue_t* requests;
 
@@ -37,10 +39,41 @@ static pthread_mutex_t queue_access = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t dispatch_CV = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t worker_CV = PTHREAD_COND_INITIALIZER;
 
-/*void insert_request(request_queue_t req)
+void insert_request(request_queue_t req)
 {
-	pthread_mutex
-}*/
+	pthread_mutex_lock(&queue_access);
+
+	while(request_count == total_requests)
+		pthread_cond_wait(&dispatch_CV, &queue_access);
+	
+	requests[input_index] = req;
+
+	input_index = (input_index + 1) % total_requests;
+	request_count++;
+	
+	pthread_cond_signal(&worker_CV);
+	pthread_mutex_unlock(&queue_access);
+}
+
+request_queue_t extract_request()
+{
+	request_queue_t req;
+	
+	pthread_mutex_lock(&queue_access);
+
+	while(request_count == 0)
+		pthread_cond_wait(&worker_CV, &queue_access);
+
+	req = requests[output_index];
+
+	output_index = (output_index + 1) % total_requests;
+	request_count--;
+
+	pthread_cond_signal(&dispatch_CV);
+	pthread_mutex_unlock(&queue_access);
+
+	return req;
+}
 
 void * dispatch(void * arg)
 {
