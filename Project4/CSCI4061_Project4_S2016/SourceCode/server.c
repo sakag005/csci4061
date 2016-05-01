@@ -86,8 +86,15 @@ void * dispatch(void * arg)
 		if((fd = accept_connection()) != 0)
 			continue;
 
+		pthread_mutex_lock(&queue_access);
+
 		if(get_request(fd, filename) != 0)
+		{
+			pthread_mutex_unlock(&queue_access);
 			continue;
+		}
+
+		pthread_mutex_unlock(&queue_access);
 
 		request_queue_t req;
 
@@ -147,6 +154,5 @@ int main(int argc, char **argv)
 			if(pthread_join(workers[l], NULL) != 0);
 		}
 		
-
         return 0;
 }
