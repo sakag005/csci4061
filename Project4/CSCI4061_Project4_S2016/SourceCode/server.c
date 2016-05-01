@@ -110,6 +110,66 @@ void * dispatch(void * arg)
 
 void * worker(void * arg)
 {
+	while(1)
+	{
+		//read from queue
+		request_queue_t req;	
+		req = extract_request();
+
+		//Parse file type
+		char* filepath = req.m_szRequest;
+		int type = 0;
+		if(strstr(filepath,".html") != NULL){
+			type += 1;
+		}	
+		if(strstr(filepath,".jpg") != NULL){
+			type += 2;
+		}
+		if(strstr(filepath,".gif") != NULL){
+			type += 4;
+		}
+		if(strstr(filepath,".txt") != NULL){
+			type += 8;
+		}
+
+		char* cont_type;
+		switch(type){
+			case 1:
+				cont_type = "text/html";
+			case 2:
+				cont_type = "text/jpeg";
+			case 4:
+				cont_type = "image/gif";
+			default:
+				cont_type = "text/plain";
+		}
+	
+		//Put contents of file into buffer
+		int length;
+		char* buffer = 0;
+		FILE * fp = fopen(filepath, "r");
+		if(fp)
+		{
+			fseek(fp,0,SEEK_END);
+			length = ftell(fp);
+			fseek(fp,0,SEEK_SET);
+			buffer = malloc(length);
+
+			if(buffer)
+			{
+				fread(buffer,1,length,fp);
+			}
+			fclose(fp);
+		}
+
+		//Return result
+		if(return_result(req.m_socket,cont_type,buffer,sizeof(char)*length) != 0){
+			perror("failed to return result \n");
+		}
+		
+		
+
+	}
 	return NULL;
 }
 
