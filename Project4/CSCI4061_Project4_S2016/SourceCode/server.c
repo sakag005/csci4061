@@ -101,9 +101,6 @@ void * dispatch(void * arg)
 			continue;
 		}
 
-		pthread_mutex_lock(&queue_access);
-
-		printf("successfully found \n");
 		if(pthread_mutex_lock(&queue_access) !=0){
 		  printf ("Queue access lock failed in disatch\n");
 		}
