@@ -39,6 +39,8 @@ static pthread_mutex_t queue_access = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t dispatch_CV = PTHREAD_COND_INITIALIZER;
 static pthread_cond_t worker_CV = PTHREAD_COND_INITIALIZER;
 
+static pthread_mutex_t request_lock = PTHREAD_MUTEX_INITIALIZER;
+
 void insert_request(request_queue_t req)
 {
 	pthread_mutex_lock(&queue_access);
@@ -163,9 +165,11 @@ void * worker(void * arg)
 		}
 
 		//Return result
+		pthread_mutex_lock(&request_lock);
 		if(return_result(req.m_socket,cont_type,buffer,sizeof(char)*length) != 0){
 			perror("failed to return result \n");
 		}
+		pthread_mutex_unlock(&request_lock);
 		
 		
 
