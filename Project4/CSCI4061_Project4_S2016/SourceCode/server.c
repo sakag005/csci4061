@@ -64,7 +64,8 @@ request_queue_t extract_request()
 	while(request_count == 0)
 		pthread_cond_wait(&worker_CV, &queue_access);
 
-	req = requests[output_index];
+	req.m_socket = requests[output_index].m_socket;
+	strcpy(req.m_szRequest, requests[output_index].m_szRequest);
 
 	output_index = (output_index + 1) % total_requests;
 	request_count--;
@@ -77,10 +78,23 @@ request_queue_t extract_request()
 
 void * dispatch(void * arg)
 {
+	int fd;
+	char filename[1024];
+
 	while(1)
 	{
-		if(accept_connection() != 0);
+		if((fd = accept_connection()) != 0)
+			continue;
 
+		if(get_request(fd, filename) != 0)
+			continue;
+
+		request_queue_t req;
+
+		req.m_socket = fd;
+		strcpy(req.m_szRequest, filename);
+
+		insert_request(req);
 		
 	}	
 
