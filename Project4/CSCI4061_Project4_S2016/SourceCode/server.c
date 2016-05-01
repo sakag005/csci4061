@@ -43,7 +43,9 @@ static pthread_mutex_t request_lock = PTHREAD_MUTEX_INITIALIZER;
 
 void insert_request(request_queue_t req)
 {
-	pthread_mutex_lock(&queue_access);
+  if(pthread_mutex_lock(&queue_access) != 0){
+    printf ("Queue access lock failed\n");
+  }
 
 	while(request_count == total_requests)
 		pthread_cond_wait(&dispatch_CV, &queue_access);
@@ -54,14 +56,18 @@ void insert_request(request_queue_t req)
 	request_count++;
 	
 	pthread_cond_signal(&worker_CV);
-	pthread_mutex_unlock(&queue_access);
+	if(pthread_mutex_unlock(&queue_access) != 0){
+	  printf ("Queue access unlock failed\n");
+	}
 }
 
 request_queue_t extract_request()
 {
 	request_queue_t req;
 	
-	pthread_mutex_lock(&queue_access);
+	if(pthread_mutex_lock(&queue_access) != 0){
+	  printf ("Queue access lock failed\n");
+	}
 
 	while(request_count == 0)
 		pthread_cond_wait(&worker_CV, &queue_access);
@@ -73,7 +79,9 @@ request_queue_t extract_request()
 	request_count--;
 
 	pthread_cond_signal(&dispatch_CV);
-	pthread_mutex_unlock(&queue_access);
+	if(pthread_mutex_unlock(&queue_access) !=0){
+	  printf ("Queue access unlock failed\n");
+	}
 
 	return req;
 }
@@ -87,20 +95,26 @@ void * dispatch(void * arg)
 	{
 		if((fd = accept_connection()) < 0)
 		{
-			perror("accept_connection failed noob!");			
+			perror("accept_connection failed");			
 			continue;
 		}
 
 		printf("successfully found \n");
-		pthread_mutex_lock(&queue_access);
+		if(pthread_mutex_lock(&queue_access) !=0){
+		  printf ("Queue access lock failed in disatch\n");
+		}
 
 		if(get_request(fd, filename) != 0)
 		{
-			pthread_mutex_unlock(&queue_access);
+		  if(pthread_mutex_unlock(&queue_access) != 0){
+		    printf ("Queue access unlock failed in dispatch\n");
+		  }
 			continue;
 		}
 
-		pthread_mutex_unlock(&queue_access);
+		if(pthread_mutex_unlock(&queue_access) != 0){
+		  printf ("Queue access unlock failed in dispatch\n");
+		}
 
 		request_queue_t req;
 
@@ -169,11 +183,15 @@ void * worker(void * arg)
 		}
 
 		//Return result
-		pthread_mutex_lock(&request_lock);
+		if (pthread_mutex_lock(&request_lock) != 0){
+		  printf ("Request access lock failed\n");
+		}
 		if(return_result(req.m_socket,cont_type,buffer,sizeof(char)*length) != 0){
 			perror("failed to return result \n");
 		}
-		pthread_mutex_unlock(&request_lock);
+		if (pthread_mutex_unlock(&request_lock) != 0){
+		  printf ("Request access unlock failed\n");
+		}
 		
 		
 
