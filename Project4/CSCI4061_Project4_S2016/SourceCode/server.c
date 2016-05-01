@@ -82,12 +82,16 @@ void * dispatch(void * arg)
 {
 	int fd;
 	char filename[1024];
-
+	printf("successfully found \n");
 	while(1)
 	{
-		if((fd = accept_connection()) != 0)
+		if((fd = accept_connection()) < 0)
+		{
+			perror("accept_connection failed noob!");			
 			continue;
+		}
 
+		printf("successfully found \n");
 		pthread_mutex_lock(&queue_access);
 
 		if(get_request(fd, filename) != 0)
