@@ -30,6 +30,8 @@ static int output_index = 0;
 static int total_requests;
 static int request_count = 0;
 
+static char root_path[1024];
+
 static request_queue_t* requests;
 
 static pthread_t dispatchers[MAX_THREADS];
@@ -82,7 +84,7 @@ void * dispatch(void * arg)
 {
 	int fd;
 	char filename[1024];
-	printf("successfully found \n");
+
 	while(1)
 	{
 		if((fd = accept_connection()) < 0)
@@ -91,7 +93,6 @@ void * dispatch(void * arg)
 			continue;
 		}
 
-		printf("successfully found \n");
 		pthread_mutex_lock(&queue_access);
 
 		if(get_request(fd, filename) != 0)
@@ -123,7 +124,11 @@ void * worker(void * arg)
 		req = extract_request();
 
 		//Parse file type
-		char* filepath = req.m_szRequest;
+		char filepath[1024];
+
+		strcpy(filepath, root_path);
+		strcat(filepath, req.m_szRequest);
+
 		int type = 0;
 		if(strstr(filepath,".html") != NULL){
 			type += 1;
@@ -153,7 +158,10 @@ void * worker(void * arg)
 		//Put contents of file into buffer
 		int length;
 		char* buffer = 0;
+
 		FILE * fp = fopen(filepath, "r");
+		printf("%s\n", filepath);
+
 		if(fp)
 		{
 			fseek(fp,0,SEEK_END);
@@ -167,6 +175,7 @@ void * worker(void * arg)
 			}
 			fclose(fp);
 		}
+
 
 		//Return result
 		pthread_mutex_lock(&request_lock);
@@ -190,11 +199,13 @@ int main(int argc, char **argv)
 			return -1;
         }
 
-        printf("Call init() first and make a dispather and worker threads\n");
-
 		init(atoi(argv[1]));
 
 		total_requests = atoi(argv[5]);
+		
+		strcpy(root_path, argv[2]);
+
+		printf("%s\n", root_path);
 
 		requests = (request_queue_t*)malloc(total_requests*sizeof(request_queue_t));
 
