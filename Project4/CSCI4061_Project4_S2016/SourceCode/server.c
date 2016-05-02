@@ -138,7 +138,9 @@ void * worker(void * arg)
 	
 	int my_thread_id = -1;
 
-	while((workers[++my_thread_id] != pthread_self()) || (my_thread_id >= MAX_THREADS));
+	while(!pthread_equal(workers[++my_thread_id], pthread_self()) && (my_thread_id < MAX_THREADS));
+
+	my_thread_id++;
 
 	while(1)
 	{
