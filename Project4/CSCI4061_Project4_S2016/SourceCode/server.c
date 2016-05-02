@@ -30,6 +30,8 @@ static int output_index = 0;
 static int total_requests;
 static int request_count = 0;
 
+static FILE* log_file;
+
 static char root_path[1024];
 
 static request_queue_t* requests;
@@ -132,6 +134,8 @@ void * dispatch(void * arg)
 
 void * worker(void * arg)
 {
+	static int num_of_requests = 0;
+	
 	while(1)
 	{
 		//read from queue
@@ -172,7 +176,7 @@ void * worker(void * arg)
 	
 		//Put contents of file into buffer
 		int length;
-		char* buffer = 0;
+		char* buffer = NULL;
 
 		FILE * fp = fopen(filepath, "r");
 		printf("%s\n", filepath);
@@ -191,20 +195,42 @@ void * worker(void * arg)
 			fclose(fp);
 		}
 
+		char msg_to_log_file[1024];
 
 		//Return result
 		if (pthread_mutex_lock(&request_lock) != 0){
 		  printf ("Request access lock failed\n");
 		}
+
 		if(return_result(req.m_socket,cont_type,buffer,sizeof(char)*length) != 0){
-			perror("failed to return result \n");
+			
+			int error_code;
+			
+			if((error_code = return_error(req.m_socket, buffer)) != 0)
+			{		
+				perror("failed to return result or error \n");
+			}else
+			{
+				sprintf(msg_to_log_file, "[%li][%d][%d][%s][%d]\n", (unsigned long int)pthread_self(), ++num_of_requests, req.m_socket, req.m_szRequest, error_code);
+				
+				int msg_len = strlen(msg_to_log_file);
+
+				if(fwrite(msg_to_log_file, sizeof(char), msg_len, log_file) < msg_len)
+					perror("error writing to log file");
+			}
+		}else
+		{
+			sprintf(msg_to_log_file, "[%li][%d][%d][%s][%d]\n", (unsigned long int)pthread_self(), ++num_of_requests, req.m_socket, req.m_szRequest, length);
+				
+			int msg_len = strlen(msg_to_log_file);
+
+			if(fwrite(msg_to_log_file, sizeof(char), msg_len, log_file) < msg_len)
+				perror("error writing to log file");
 		}
+
 		if (pthread_mutex_unlock(&request_lock) != 0){
 		  printf ("Request access unlock failed\n");
 		}
-		
-		
-
 	}
 	return NULL;
 }
@@ -217,6 +243,9 @@ int main(int argc, char **argv)
 			printf("usage: %s port path num_dispatcher num_workers queue_length [cache_size]\n", argv[0]);
 			return -1;
         }
+
+		if((log_file = fopen("web_server_log", "a")) == NULL)
+			perror("failed to open log file");
 
 		init(atoi(argv[1]));
 
