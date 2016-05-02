@@ -134,7 +134,7 @@ void * dispatch(void * arg)
 
 void * worker(void * arg)
 {
-	static int num_of_requests = 0;
+	int num_of_requests = 0;
 	
 	while(1)
 	{
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
 			return -1;
         }
 
-		if((log_file = fopen("web_server_log", "a")) == NULL)
+		if((log_file = fopen("web_server_log", "w")) == NULL)
 			perror("failed to open log file");
 
 		init(atoi(argv[1]));
