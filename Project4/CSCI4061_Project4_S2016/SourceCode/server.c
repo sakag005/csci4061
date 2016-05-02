@@ -136,6 +136,10 @@ void * worker(void * arg)
 {
 	int num_of_requests = 0;
 	
+	int my_thread_id = -1;
+
+	while((workers[++my_thread_id] != pthread_self()) || (my_thread_id >= MAX_THREADS));
+
 	while(1)
 	{
 		//read from queue
@@ -211,7 +215,7 @@ void * worker(void * arg)
 				perror("failed to return result or error \n");
 			}else
 			{
-				sprintf(msg_to_log_file, "[%li][%d][%d][%s][%d]\n", (unsigned long int)pthread_self(), ++num_of_requests, req.m_socket, req.m_szRequest, error_code);
+				sprintf(msg_to_log_file, "[%d][%d][%d][%s][%d]\n", my_thread_id, ++num_of_requests, req.m_socket, req.m_szRequest, error_code);
 				
 				int msg_len = strlen(msg_to_log_file);
 
@@ -220,7 +224,7 @@ void * worker(void * arg)
 			}
 		}else
 		{
-			sprintf(msg_to_log_file, "[%li][%d][%d][%s][%d]\n", (unsigned long int)pthread_self(), ++num_of_requests, req.m_socket, req.m_szRequest, length);
+			sprintf(msg_to_log_file, "[%d][%d][%d][%s][%d]\n", my_thread_id, ++num_of_requests, req.m_socket, req.m_szRequest, length);
 				
 			int msg_len = strlen(msg_to_log_file);
 
