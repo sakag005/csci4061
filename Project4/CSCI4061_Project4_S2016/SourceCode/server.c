@@ -45,6 +45,9 @@ static pthread_cond_t worker_CV = PTHREAD_COND_INITIALIZER;
 
 static pthread_mutex_t request_lock = PTHREAD_MUTEX_INITIALIZER;
 
+int has_flushed = 0;
+
+
 void insert_request(request_queue_t req)
 {
   if(pthread_mutex_lock(&queue_access) != 0){
@@ -208,6 +211,18 @@ void * worker(void * arg)
 		  printf ("Request access lock failed\n");
 		}
 
+		if((log_file = fopen("web_server_log", "a")) == NULL)
+			perror("failed to open log file");
+
+		if(has_flushed == 0){
+			if(fflush(log_file) != 0)
+			{
+				perror("failed to flush log file");
+			}
+			printf("has flushed \n");
+			has_flushed = 1;
+		}
+
 		if(return_result(req.m_socket,cont_type,buffer,sizeof(char)*length) != 0){
 			
 			int error_code;
@@ -234,6 +249,8 @@ void * worker(void * arg)
 				perror("error writing to log file");
 		}
 
+		fclose(log_file);
+
 		if (pthread_mutex_unlock(&request_lock) != 0){
 		  printf ("Request access unlock failed\n");
 		}
@@ -250,8 +267,7 @@ int main(int argc, char **argv)
 			return -1;
         }
 
-		if((log_file = fopen("web_server_log", "w")) == NULL)
-			perror("failed to open log file");
+		fflush(log_file);
 
 		init(atoi(argv[1]));
 
@@ -286,6 +302,7 @@ int main(int argc, char **argv)
 		{
 			if(pthread_join(workers[l], NULL) != 0);
 		}
-		
+	
+	
         return 0;
 }
