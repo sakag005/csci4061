@@ -1,0 +1,29 @@
+/* CSci4061 S2016 Assignment 4
+ * section: 6 (for labs)
+ * date: 05/02/16
+ * William Rurik, Michael Jacobson, Peter Sakaguchi (for partner(s))
+ * x500: rurik003, jaco1622, sakag005
+ * id: 4618256, 4377605, 4620018 */
+
+How to compile and run your program:
+	To compile and run the program, type "make" (DON'T use make clean) on the commandline 
+	with the given makefile which should create an executable called "web_server". 
+	In order to start running a server, type
+	./web_server <port#> <path_to_files> <#dispatch> <#worker> <queuelength> 
+	Where #dispatch and #worker are the number of dispatch and worker threads respectively,
+	and queuelength is the size of the bounded buffer that contains requests to be
+	processed. 
+	To query a file from the server, type
+	wget -i <path_to_files>/file   
+	If the -O <filename> flag is added, all of the requested files will be put in one
+	file named <filename>.
+
+How our program works:
+	Our program creates a server which will run indefinitely (until the user calls 
+	ctrl+c), which can then send files stored locally to entities which query it either
+	from the same machine, or from different unix machines (assuming they are on the same
+	cse lab account). 
+	
+	
+
+

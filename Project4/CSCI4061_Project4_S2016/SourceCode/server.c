@@ -45,8 +45,7 @@ static pthread_cond_t worker_CV = PTHREAD_COND_INITIALIZER;
 
 static pthread_mutex_t request_lock = PTHREAD_MUTEX_INITIALIZER;
 
-int has_flushed = 0;
-
+int new_server = 1;
 
 void insert_request(request_queue_t req)
 {
@@ -213,16 +212,10 @@ void * worker(void * arg)
 
 		if((log_file = fopen("web_server_log", "a")) == NULL)
 			perror("failed to open log file");
-
-		if(has_flushed == 0){
-			if(fflush(log_file) != 0)
-			{
-				perror("failed to flush log file");
-			}
-			printf("has flushed \n");
-			has_flushed = 1;
+		if(fflush(log_file) != 0)
+		{
+			perror("failed to flush log file");
 		}
-
 		if(return_result(req.m_socket,cont_type,buffer,sizeof(char)*length) != 0){
 			
 			int error_code;
@@ -267,7 +260,10 @@ int main(int argc, char **argv)
 			return -1;
         }
 
-		fflush(log_file);
+		//empty the web_server_log
+		if((log_file = fopen("web_server_log", "w")) == NULL)
+			perror("failed to open log file");
+		fclose(log_file);
 
 		init(atoi(argv[1]));
 
